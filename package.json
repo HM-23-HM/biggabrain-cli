@@ -14,9 +14,14 @@
   },
   "homepage": "https://github.com/HM-23-HM/bigga-brain-chain#readme",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx tsx index.ts"
   },
   "devDependencies": {
+    "@types/node": "^22.10.2",
     "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "pdf-poppler": "^0.2.1"
   }
 }

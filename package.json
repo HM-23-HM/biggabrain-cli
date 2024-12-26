@@ -1,0 +1,22 @@
+{
+  "name": "bigga-brain-chain",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/HM-23-HM/bigga-brain-chain.git"
+  },
+  "author": "Hodeem Miller <miller.hodeem@gmail.com>",
+  "license": "MIT",
+  "description": "",
+  "bugs": {
+    "url": "https://github.com/HM-23-HM/bigga-brain-chain/issues"
+  },
+  "homepage": "https://github.com/HM-23-HM/bigga-brain-chain#readme",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

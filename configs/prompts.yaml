@@ -1,0 +1,7 @@
+imageToText: |
+  Extract the questions from this image. 
+  However, here are some additional rules.
+  - If there is mathematical notation, then write the question in katex.
+  - If the question has an image or graph, skip the question.
+  - If the question has a table, then describe the table's structure in
+    a way that an llm can understand how to reconstruct the table in html.

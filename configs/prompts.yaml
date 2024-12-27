@@ -2,6 +2,57 @@ imageToText: |
   Extract the questions from this image. 
   However, here are some additional rules.
   - If there is mathematical notation, then write the question in katex.
-  - If the question has an image or graph, skip the question.
+  - If the question has an image or graph, skip the question and return ""
   - If the question has a table, then describe the table's structure in
     a way that an llm can understand how to reconstruct the table in html.
+generateQans: |
+  # Generate the questions, answers, notes and solutions from the text above.
+  Analyze the math questions above and then for each:
+
+  1. Reword the question and change the numbers used  to avoid intellectual property issues, but preserve the spirit of the original question.
+  2. Answer the following:
+  - What key concepts and principles are being assessed in this question? (e.g., algebra, geometry, trigonometry, calculus)
+  - What are the steps involved in solving this problem effectively? Demonstrate while solving the problem. Show all working. Do not skip any steps. I repeat, show *all* of your working.
+  - If applicable, explain the reasoning behind using a specific mathematical operation or formula in each step.
+  - Are there any common misconceptions or pitfalls students should be aware of when answering this type of question? (e.g., order of operations, incorrect application of formulas, sign errors)
+
+  - Also abide by the following editing notes
+editingNotes: |
+  - Escape \ in KaTeX syntax to prevent errors in JSON. For example, [tex]\frac{31}{10}[/tex] should become [tex]\\frac{31}{10}[/tex] and <p>[tex]4\frac{2}{5} = \frac{(4 \times 5) + 2}{5} = \frac{22}{5}[/tex]</p> should become <p>[tex]4\\frac{2}{5} = \\frac{(4 \\times 5) + 2}{5} = \\frac{22}{5}[/tex]</p>
+  - Ensure that the answer is correct and matches the solution provided.
+  1. Write for a grade-9 reading level.
+  2. Make the tone conversational. For example:
+      - "In step 2, we use the distributive property because..."
+      - "The reason we use the Pythagorean theorem here is because..."
+  3. All answers must be of type ‘string’.
+  4. All values must be in valid HTML syntax.
+  5. For all mathematical steps (including in the new question, answer, solution, and notes), follow these instructions:
+      - Use a separate line for each mathematical step.
+      - Enclose every mathematical expression in `[tex]` and `[/tex]` tags for proper rendering.
+      - Use valid KaTeX notation for all expressions (e.g., no exponential notation like `^2` or fractions like `a/b` unless converted to KaTeX).
+      - If you need to write an exponent, use KaTeX's `^` for exponents (e.g., `x^2`), and fractions should be written as `\frac{a}{b}`.
+  6. Round all decimals to 2 decimal places and indicate the same.
+  7. Present your response in a JSON object with the following keys:
+      - `id` (number): Matches the index of the question in the original text.
+      - `question` (string): The new question.
+      - `answer` (string): The single answer to the question (no explanation needed).
+      - `solution` (string): The step-by-step working that demonstrates how you arrived at the answer.
+      - `notes` (string): Include helpful information for students in preparing for similar questions.
+  8. For the notes section, follow these rules:
+      - Add the Unicode bullet point symbol  before each `<li>` in unordered list items in the `notes` section.
+      - Ensure all sections are numbered in ordered lists (e.g., "1. First point").
+      - Do not use exponential notation (`^2`) or fractions like `a/b` in the text. Convert all mathematical expressions to valid KaTeX.
+  9. For the `solutions` and `notes` sections:
+      - Avoid using section headers like `<h3>Solution</h3>` or `<h3>Notes</h3>`.
+      - Follow these HTML guidelines for formatting:
+          - Use `<h3>` for main sections.
+          - Use `<h4>` only if absolutely necessary (keep the hierarchy flat).
+          - Keep paragraphs brief and use `<p>` tags.
+          - Use ordered lists (`<ol>`) for steps and unordered lists (`<ul>`) for bullet points.
+          - Use `<strong>` for emphasis on important words/phrases and `<em>` for regular emphasis.
+          - Use `<mark>` to highlight key terms or definitions.
+          - Ensure that mathematical expressions are in KaTeX format inside `[tex]` and `[/tex]` tags.
+          - Use `<br>` sparingly, only for line breaks within paragraphs or code blocks.
+          - Ensure links are descriptive if used within the solution or notes.
+      - Follow consistent formatting across all sections. Avoid excessive nesting; maintain clarity and readability.
+      - Return the response as valid JSON.

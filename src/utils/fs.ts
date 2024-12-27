@@ -4,12 +4,14 @@ import * as yaml from "js-yaml";
 
 interface PromptsConfig {
   imageToText: string;
+  generateQans: string;
+  editingNotes: string;
 }
 
 const fileContents = fs.readFileSync("./configs/prompts.yaml", "utf8");
 export const promptsConfig = yaml.load(fileContents) as PromptsConfig;
 
-export type FolderNames = "inbound" | "outbound" | "staging" | "archive";
+export type FolderNames = "inbound" | "outbound" | "staging" | "archive" | "saved";
 
 export function getFilenames(
   folder: FolderNames = "inbound",
@@ -32,4 +34,15 @@ export function getFilenames(
   return fs
     .readdirSync(folderPath)
     .filter((file) => path.extname(file).toLowerCase() === extension);
+}
+
+export function saveToFile(filename: string, content: string, folderName: FolderNames = 'saved'): void {
+    const dir = path.join(__dirname, `../../${folderName}`);
+
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+
+    const filePath = path.join(dir, filename);
+    fs.writeFileSync(filePath, content, 'utf8');
 }

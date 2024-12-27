@@ -2,12 +2,19 @@ import { HumanMessage, MessageContent } from "@langchain/core/messages";
 import { RunnableLambda, RunnableSequence } from "@langchain/core/runnables";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import fs from "fs";
-import { promptsConfig, saveToFile } from "./fs";
+import { promptsConfig, saveToFile, syllabusConfig } from "./fs";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { parseJsonString } from "./parse";
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY as string);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
+export interface Qans {
+  question: string;
+  answer: string;
+  notes: string;
+  solution: string;
+  section?: number
+}
 
 export const sendPrompt = async (
   prompt: string,
@@ -56,12 +63,17 @@ export const getQuestionFromImage = async (imagePath: string) => {
   return content;
 };
 
-const formatQuestions = (questions: MessageContent[]) => {
+const formatStringQuestions = (questions: MessageContent[]) => {
   return questions.join("\n");
 };
 
+const formatObjQuestions = (questions: any[]) => {
+  const int = questions.map(question => JSON.stringify(question))
+  return int.join('\n')
+}
+
 export const generateQansWorkload = async (questions: MessageContent[]) => {
-  const formattedQuestions = formatQuestions(questions);
+  const formattedQuestions = formatStringQuestions(questions);
   saveToFile("formattedQuestions.txt", formattedQuestions);
   console.log("formattedQuestions saved to file");
 
@@ -88,3 +100,11 @@ export const getUnansweredQues = (
   const unanswered = questions.length - workloadResponse.length;
   return questions.slice(-unanswered);
 };
+
+export const classifyQuestions = async (questions: Qans[]) => {
+  const formattedQuestions = formatObjQuestions(questions);
+  const content = await sendPrompt(`${promptsConfig.classify}\nSections\n${syllabusConfig.sections.join("\n")}\nQuestions\n${formattedQuestions}`);
+  saveToFile("classifiedQuestions.txt", content);
+  console.log("classifiedQuestions saved to file");
+  return parseJsonString(content);
+}

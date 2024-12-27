@@ -6,10 +6,18 @@ interface PromptsConfig {
   imageToText: string;
   generateQans: string;
   editingNotes: string;
+  classify: string;
 }
 
-const fileContents = fs.readFileSync("./configs/prompts.yaml", "utf8");
-export const promptsConfig = yaml.load(fileContents) as PromptsConfig;
+interface SyllabusConfig {
+  sections: string[];
+}
+
+const promptFileContents = fs.readFileSync("./configs/prompts.yaml", "utf8");
+const sylFileContents = fs.readFileSync("./configs/syllabus.yaml", "utf8");
+export const promptsConfig = yaml.load(promptFileContents) as PromptsConfig;
+export const syllabusConfig = yaml.load(sylFileContents) as SyllabusConfig;
+
 
 export type FolderNames = "inbound" | "outbound" | "staging" | "archive" | "saved";
 

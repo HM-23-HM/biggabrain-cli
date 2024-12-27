@@ -1,6 +1,6 @@
 import { MessageContent } from "@langchain/core/messages";
 import * as path from "path";
-import { generateQansWorkload, getQuestionFromImage, getUnansweredQues } from "./src/utils/chain";
+import { classifyQuestions, generateQansWorkload, getQuestionFromImage, getUnansweredQues, Qans } from "./src/utils/chain";
 import { convertPdfToPng } from "./src/utils/conversion";
 import { getFilenames, saveToFile } from "./src/utils/fs";
 
@@ -9,15 +9,15 @@ const stagingDir = path.join(__dirname, "staging");
 
 const main = async () => {
     try {
-        // Step 1 - Read all files in the inbound directory
-        const pdfFiles = getFilenames("inbound", "pdf");
+        // // Step 1 - Read all files in the inbound directory
+        // const pdfFiles = getFilenames("inbound", "pdf");
 
-        // Step 2 - Convert pdf to images
-        for (const file of pdfFiles) {
-            const filePath = path.join(inboundDir, file);
-            await convertPdfToPng(filePath);
-            console.log(`Converted ${file} to PNG`);
-        }
+        // // Step 2 - Convert pdf to images
+        // for (const file of pdfFiles) {
+        //     const filePath = path.join(inboundDir, file);
+        //     await convertPdfToPng(filePath);
+        //     console.log(`Converted ${file} to PNG`);
+        // }
 
         // Step 3 - Process images to generate questions
         const imageFiles = getFilenames("staging", "png");
@@ -30,14 +30,13 @@ const main = async () => {
         }
 
         // Step 4 - Generate Q&A
-        const combinedQans = [];
+        const combinedQans: Qans[] = [];
         const maxIterations = 2; // Set the maximum number of iterations
         let iterations = 0;
         let unanswered: MessageContent[] = questions;
 
         while (unanswered.length && iterations < maxIterations) {
             const response = await generateQansWorkload(unanswered);
-            console.log({ responsess: response });
             unanswered = getUnansweredQues(unanswered, response);
 
             combinedQans.push(...response);
@@ -57,7 +56,11 @@ const main = async () => {
 
         // Step 5 - Save Q&A to file
         const content = JSON.stringify(combinedQans, null, 2);
-        saveToFile('combined.txt', content);
+        saveToFile('combined.json', content);
+
+        const classified = await classifyQuestions(combinedQans);
+        saveToFile('classified.json', JSON.stringify(classified, null, 2), 'outbound');
+        console.log('Classification complete.');
     } catch (err) {
         console.error('Error in main function:', err);
     }

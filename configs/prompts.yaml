@@ -56,3 +56,6 @@ editingNotes: |
           - Ensure links are descriptive if used within the solution or notes.
       - Follow consistent formatting across all sections. Avoid excessive nesting; maintain clarity and readability.
       - Return the response as valid JSON.
+classify: |
+  Analyze these questions, and classify them using the following sections.
+  Add the key to each question in a new 'section' field with the number of the section.

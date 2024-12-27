@@ -1,7 +1,7 @@
 sections:
-  - title: number theory and computation
-    objectives: |
-    On completion of this Section, students should:
+  - Section 1 - number theory and computation
+    The objectives are
+    On completion of this Section, students should
     1. demonstrate computational skills;
     2. be aware of the importance of accuracy in computation;
     3. appreciate the need for numeracy in everyday life;
@@ -12,9 +12,9 @@ sections:
     8. demonstrate the ability to use number properties to solve problems; and,
     9. develop the ability to use patterns, trends and investigative skills.
 
-  - title: Consumer Arithmetic
-    objectives: |
-    On completion of this Section, students should:
+  - Section 2 - Consumer Arithmetic
+    The objectives are
+    On completion of this Section, students should
     1. develop the ability to perform the calculations required in normal business transactions, and
     in computing their own budgets;
     2. appreciate the need for both accuracy and speed in calculations;
@@ -24,25 +24,25 @@ sections:
     real-world problems.
 
 
-  - title: Sets
-    objectives: |
-    On completion of this Section, students should:
+  - Section 3 - Sets
+    The objectives are
+    On completion of this Section, students should
     1. demonstrate the ability to communicate using set language and concepts;
     2. demonstrate the ability to reason logically; and,
     3. appreciate the importance and utility of sets in analysing and solving real-world problems.
 
-  - title: Measurement
-    objectives: |
-    On completion of this Section, students should:
+  - Section 4 - Measurement
+    The objectives are
+    On completion of this Section, students should
     1. understand that the attributes of geometrical objects can be quantified using measurement;
     2. appreciate that all measurements are approximate and that the relative accuracy of a
     measurement is dependent on the measuring instrument and the measurement process; and,
     3. demonstrate the ability to use concepts in measurement to model and solve real-world
     problems.
 
-  - title: Statistics
-    objectives: |
-    On completion of this Section, students should:
+  - Section 5 - Statistics
+    The objectives are
+    On completion of this Section, students should
     1. appreciate the advantages and disadvantages of the various ways of presenting and
     representing data;
     2. appreciate the necessity for taking precautions in collecting, analysing and interpreting
@@ -51,26 +51,26 @@ sections:
     solve real-world problems; and,
     4. understand the four levels/scales of measurement that inform the collection of data. 
 
-  - title: Algebra
-    objectives: |
-    On completion of this Section, students should:
+  - Section 6 - Algebra
+    The objectives are
+    On completion of this Section, students should
     1. appreciate the use of algebra as a language and a form of communication;
     2. appreciate the role of symbols and algebraic techniques in solving problems in mathematics
     and related fields; and,
     3. demonstrate the ability to reason with abstract entities and to use algebraic techniques to
 
-  - title: Relations, Functions and Graphs
-    objectives: |
-    On completion of this Section, students should:
+  - Section 7 - Relations, Functions and Graphs
+    The objectives are
+    On completion of this Section, students should
     1. appreciate the importance of relations in Mathematics;
     2. appreciate that many mathematical relations may be represented in symbolic form, tabular
     or pictorial form; and,
     3. appreciate the usefulness of concepts in relations, functions and graphs to solve real-world
     problems.
 
-  - title: Geometry and Trigonometry
-    objectives: |
-    On completion of this Section, students should:
+  - Section 8 - Geometry and Trigonometry
+    The objectives are
+    On completion of this Section, students should
     1. appreciate the notion of space as a set of points with subsets of that set (space) having
     properties related to other mathematical systems;
     2. understand the properties and relationship among geometrical objects;
@@ -80,9 +80,9 @@ sections:
     5. appreciate the power of trigonometrical methods in solving authentic problems.
 
 
-  - title: Vectors and Matrices
-    objectives: |
-    On completion of this Section, students should:
+  - Section 9 - Vectors and Matrices
+    The objectives are
+    On completion of this Section, students should
     1. demonstrate the ability to use vector notation and concepts to model and solve real-world
     problems;
     2. develop awareness of the existence of certain mathematical objects, such as matrices, that

@@ -15,7 +15,7 @@ export interface Qans {
 
 export const sendPrompt = async (
   prompt: string,
-  waitFor: number = 10, // default wait time in minutes
+  waitFor: number = 5, // default wait time in minutes
   maxRetries: number = 3,
   image?: { inlineData: { data: string; mimeType: string } } // maximum number of retries
 ): Promise<string> => {
@@ -54,7 +54,6 @@ export const getQuestionFromImage = async (imagePath: string) => {
 
   const content = await sendPrompt(promptsConfig.imageToText, 10, 3, { inlineData: { data: image, mimeType: "image/png" } });
   appendToFile("imageToText.txt", content);
-  console.log("imageToText saved to file");
   return content;
 };
 

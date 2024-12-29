@@ -3,15 +3,14 @@ imageToText: |
   However, here are some additional rules.
   - If there is mathematical notation, then write the question in katex.
   - If the question has an image or graph, skip the question and return ""
-  - If the question has a table, then describe the table's structure in
-    a way that an llm can understand how to reconstruct the table in html.
-  - If the question requires figures or drawings then skip them
+  - If the question requires tables, figures or drawings then skip them
 generateQans: |
   # Generate the questions, answers, notes and solutions from the text above.
   Analyze the math questions above and then for each:
 
   1. Reword the question and change the numbers used  to avoid intellectual property issues, but preserve the spirit of the original question.
-  2. Answer the following:
+  2. Make sure your question doesn't include tables, graphs or diagrams of any kind.
+  3. Answer the following:
   - What key concepts and principles are being assessed in this question? (e.g., algebra, geometry, trigonometry, calculus)
   - What are the steps involved in solving this problem effectively? Demonstrate while solving the problem. Show all working. Do not skip any steps. I repeat, show *all* of your working.
   - If applicable, explain the reasoning behind using a specific mathematical operation or formula in each step.
@@ -56,6 +55,7 @@ editingNotes: |
           - Ensure links are descriptive if used within the solution or notes.
       - Follow consistent formatting across all sections. Avoid excessive nesting; maintain clarity and readability.
       - Return the response as valid JSON.
+      - Don't use diagrams, images, tables, or graphs in the solution.
 classify: |
   Analyze these questions, and classify them using the following sections.
   Add the key to each question in a new 'section' field with the number of the section.

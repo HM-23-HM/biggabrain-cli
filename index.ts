@@ -35,6 +35,9 @@ const main = async () => {
       const question = await getQuestionFromImage(filePath);
       questions.push(question);
     }
+    
+    console.log("questions saved to file");
+
 
     // Step 4 - Generate Q&A
     const combinedQans: string[] = [];

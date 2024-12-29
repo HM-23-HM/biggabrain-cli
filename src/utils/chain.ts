@@ -1,10 +1,7 @@
-import { HumanMessage, MessageContent } from "@langchain/core/messages";
-import { RunnableLambda, RunnableSequence } from "@langchain/core/runnables";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import fs from "fs";
-import { promptsConfig, saveToFile, syllabusConfig } from "./fs";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { parseJsonString } from "./parse";
+import { MessageContent } from "@langchain/core/messages";
+import fs from "fs";
+import { appendToFile, promptsConfig, syllabusConfig } from "./fs";
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY as string);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -35,16 +32,14 @@ export const sendPrompt = async (
     } catch (err: any) {
       if (err.status === 429 || err.status === 503) {
         attempts++;
-        console.log(err, true);
-        console.log(
+        console.error(
           `${err.status} Error. Attempt ${attempts} of ${maxRetries}. Retrying in ${waitFor} minutes...`,
-          true
         );
         await new Promise((resolve) =>
           setTimeout(resolve, waitFor * 60 * 1000)
         );
       } else {
-        console.log(err, true);
+        console.error(err);
         throw err;
       }
     }
@@ -58,7 +53,7 @@ export const getQuestionFromImage = async (imagePath: string) => {
   const image = fs.readFileSync(imagePath).toString("base64");
 
   const content = await sendPrompt(promptsConfig.imageToText, 10, 3, { inlineData: { data: image, mimeType: "image/png" } });
-  saveToFile("imageToText.txt", content);
+  appendToFile("imageToText.txt", content);
   console.log("imageToText saved to file");
   return content;
 };
@@ -74,22 +69,20 @@ const formatObjQuestions = (questions: any[]) => {
 
 export const generateQansWorkload = async (questions: MessageContent[]) => {
   const formattedQuestions = formatStringQuestions(questions);
-  saveToFile("formattedQuestions.txt", formattedQuestions);
+  appendToFile("formattedQuestions.txt", formattedQuestions);
   console.log("formattedQuestions saved to file");
 
   const qansPrompt = `${formattedQuestions}\n${promptsConfig.generateQans}\n${promptsConfig.editingNotes}`;
-  saveToFile("qansPrompt.txt", qansPrompt);
-  console.log("qansPrompt saved to file");
 
   const response = await sendPrompt(qansPrompt);
-  saveToFile("qansResponse.txt", response);
+  appendToFile("qansResponse.txt", response);
   console.log("qansResponse saved to file");
   
-  const parsedJson = parseJsonString(response);
-  saveToFile("parsedJson.txt", JSON.stringify(parsedJson, null, 2));
-  console.log("parsedJson saved to file");
+  // const parsedJson = parseJsonString(response);
+  // saveToFile("parsedJson.txt", JSON.stringify(parsedJson, null, 2));
+  // console.log("parsedJson saved to file");
 
-  return parsedJson;
+  return response;
 };
 
 export const getUnansweredQues = (
@@ -101,10 +94,10 @@ export const getUnansweredQues = (
   return questions.slice(-unanswered);
 };
 
-export const classifyQuestions = async (questions: Qans[]) => {
-  const formattedQuestions = formatObjQuestions(questions);
+export const classifyQuestions = async (questions: string[]) => {
+  const formattedQuestions = formatStringQuestions(questions);
   const content = await sendPrompt(`${promptsConfig.classify}\nSections\n${syllabusConfig.sections.join("\n")}\nQuestions\n${formattedQuestions}`);
-  saveToFile("classifiedQuestions.txt", content);
+  appendToFile("classifiedQuestions.txt", content);
   console.log("classifiedQuestions saved to file");
-  return parseJsonString(content);
+  return content;
 }

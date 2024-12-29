@@ -1,5 +1,3 @@
-
-
 export function parseJsonString(input: string) {
   // First, find the actual JSON content between the backticks
   const jsonMatch = input.match(/```json\n([\s\S]*?)```/);
@@ -22,3 +20,11 @@ export function stripJsonMarkers(content: string): string {
   return content.replace(/```json/g, "").replace(/```/g, "");
 }
 
+export function parseOrReturnString(input: string): object | string {
+    try {
+        const parsedJson = parseJsonString(input);
+        return parsedJson;
+    } catch (error) {
+        return input;
+    }
+}

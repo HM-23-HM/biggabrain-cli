@@ -5,7 +5,6 @@ import * as fs from 'fs';
 
 export async function convertPdfToPng(pdfFilePath: string) {
     const stagingFolder = path.join(__dirname, '../../staging');
-    console.log({ pdfFilePath, stagingFolder });
 
     let opts = {
         format: 'png',
@@ -14,7 +13,6 @@ export async function convertPdfToPng(pdfFilePath: string) {
         page: null
     }
 
-    console.log({ opts });
 
     if (!fs.existsSync(pdfFilePath)) {
         console.log({ pdfFilePath });

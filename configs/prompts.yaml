@@ -5,6 +5,7 @@ imageToText: |
   - If the question has an image or graph, skip the question and return ""
   - If the question has a table, then describe the table's structure in
     a way that an llm can understand how to reconstruct the table in html.
+  - If the question requires figures or drawings then skip them
 generateQans: |
   # Generate the questions, answers, notes and solutions from the text above.
   Analyze the math questions above and then for each:
@@ -33,7 +34,6 @@ editingNotes: |
       - If you need to write an exponent, use KaTeX's `^` for exponents (e.g., `x^2`), and fractions should be written as `\frac{a}{b}`.
   6. Round all decimals to 2 decimal places and indicate the same.
   7. Present your response in a JSON object with the following keys:
-      - `id` (number): Matches the index of the question in the original text.
       - `question` (string): The new question.
       - `answer` (string): The single answer to the question (no explanation needed).
       - `solution` (string): The step-by-step working that demonstrates how you arrived at the answer.

@@ -5,4 +5,5 @@ staging/
 archive/
 saved/
 ignore/
+posts/
 .env

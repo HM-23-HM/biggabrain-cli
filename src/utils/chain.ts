@@ -61,7 +61,7 @@ const formatStringQuestions = (questions: MessageContent[]) => {
   return questions.join("\n");
 };
 
-const formatObjQuestions = (questions: any[]) => {
+export const formatObjQuestions = (questions: any[]) => {
   const int = questions.map(question => JSON.stringify(question))
   return int.join('\n')
 }
@@ -97,7 +97,6 @@ export const classifyQuestions = async (questions: string[]) => {
   const formattedQuestions = formatStringQuestions(questions);
   const content = await sendPrompt(`${promptsConfig.classify}\nSections\n${syllabusConfig.sections.join("\n")}\nQuestions\n${formattedQuestions}`);
   appendToFile("classifiedQuestions.txt", content);
-  console.log("classifiedQuestions saved to file");
   return content;
 }
 

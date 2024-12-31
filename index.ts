@@ -3,6 +3,7 @@ import * as path from "path";
 import {
   classifyQuestions,
   doubleCheckQans,
+  formatObjQuestions,
   generateQansWorkload,
   getQuestionFromImage,
   getUnansweredQues
@@ -88,6 +89,7 @@ const main = async () => {
         `Some questions remain unanswered after ${maxIterations} iterations:`,
         unanswered
       );
+      appendToFile("unanswered.txt", formatObjQuestions(unanswered));
     } else {
       console.log("All questions answered.");
     }

@@ -11,6 +11,7 @@ import { convertPdfToPng } from "./src/utils/conversion";
 import { appendToFile, appendToJsonFile, getFilenames } from "./src/utils/fs";
 import { parseOrReturnString } from "./src/utils/parse";
 import { moveFiles } from "./src/utils/post";
+import { fixExcessiveBackslashes } from "./src/utils/validation";
 
 const inboundDir = path.join(__dirname, "inbound");
 const stagingDir = path.join(__dirname, "staging");
@@ -55,7 +56,7 @@ const main = async () => {
     // Step 4 - Generate Q&A
     const combinedQans: string[] = [];
     const maxIterations = 2; // Set the maximum number of iterations
-    const batchSize = 2; // Set the batch size
+    const batchSize = 3; // Set the batch size
     let iterations = 0;
     let unanswered: MessageContent[] = questions;
 
@@ -95,7 +96,11 @@ const main = async () => {
     appendToFile("combined.json", content);
 
     const classifiedResults = await processInBatches<string,string>(combinedQans, batchSize, classifyQuestions);
-    const doubleChecked = await processInBatches(classifiedResults, batchSize, doubleCheckQans)
+    console.log("classification complete");
+    const wFixedKatex = fixExcessiveBackslashes(classifiedResults);
+    console.log("katex fixed");
+    const doubleChecked = await processInBatches(wFixedKatex, batchSize, doubleCheckQans);
+    console.log("double check complete");
 
     doubleChecked.forEach((result) => {
       const parsed = parseOrReturnString(result);

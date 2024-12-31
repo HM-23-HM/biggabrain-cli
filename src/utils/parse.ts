@@ -27,6 +27,7 @@ export function parseOrReturnString(input: string): object | string {
         return input;
     }
 }
+
 /**
  * Corrects KaTeX syntax in strings to ensure proper escaping and formatting for JSON representation.
  * 

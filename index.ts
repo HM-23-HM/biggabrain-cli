@@ -11,7 +11,7 @@ import {
 import { convertPdfToPng } from "./src/utils/conversion";
 import { appendToFile, appendToJsonFile, getFilenames } from "./src/utils/fs";
 import { parseOrReturnString } from "./src/utils/parse";
-import { moveFiles } from "./src/utils/post";
+import { moveFiles } from "./src/utils/cleanup";
 import { fixExcessiveBackslashes } from "./src/utils/validation";
 
 const inboundDir = path.join(__dirname, "inbound");

@@ -19,6 +19,11 @@ export function stripJsonMarkers(content: string): string {
   return content.replace(/```json/g, "").replace(/```/g, "");
 }
 
+export function stripLLMOutputMarkers(content: string): string {
+  const regex = /(?<=\s)```|^```(\w+)?/g
+  return content.replace(regex, "")
+}
+
 export function parseOrReturnString(input: string): object | string {
     try {
         const parsedJson = parseJsonString(input);

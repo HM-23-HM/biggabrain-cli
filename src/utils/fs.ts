@@ -8,6 +8,11 @@ interface PromptsConfig {
   editingNotes: string;
   classify: string;
   doubleCheck: string;
+  marketing: {
+    quizzes: string;
+    examPrepTips: string;
+    motivation: string;
+  }
 }
 
 interface SyllabusConfig {

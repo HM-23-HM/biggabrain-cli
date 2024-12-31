@@ -72,5 +72,76 @@ doubleCheck: |
     - Do not remove any fields or content
     - Only fix KaTeX syntax issues
     - Provide no explanation - only the corrected JSON
+marketing:
+  quizzes: |
+    Based on the following sections of a syllabus, create 5 short
+    quizzes with multiple choice answers. Each quiz should be no more 
+    than 30 words. The questions should be at a grade 7-9 level of 
+    difficulty. Return the quizzes as an array of objects in valid json syntax.
+    Dont' assign the array to a variable. Just give me the array. 
+    Each question should have no more than 3 options. 
 
-  
+    The format of the object should be:
+    { question: string, optionA: string, optionB: string, optionC: string }
+
+    Here are the sections:
+      - Number Theory and Computation
+      - Consumer Arithmetic
+      - Measurement
+      - Statistics
+      - Algebra
+
+    Here are sample quizzes:
+    [
+      {
+        question: 'What is 2.75 expressed as a fraction in its simplest form?',
+        optionA: '11/4',  // Correct
+        optionB: '7/2',
+        optionC: '275/100'
+      },
+      {
+        question: 'If a shirt costs $40 and is on sale for 25% off, what is the final price?',
+        optionA: '$30',  // Correct
+        optionB: '$35',
+        optionC: '$25'
+      },
+      {
+        question: 'A rectangular garden has length 8m and width 6m. What is its area?',
+        optionA: '14m²',
+        optionB: '28m²',
+        optionC: '48m²'  // Correct
+      },
+      {
+        question: 'What is the mean of the numbers: 3, 7, 8, 12, 15?',
+        optionA: '7',
+        optionB: '8',
+        optionC: '9'  // Correct
+      },
+      {
+        question: 'Solve for x: 3x + 5 = 20',
+        optionA: 'x = 5',  // Correct
+        optionB: 'x = 6',
+        optionC: 'x = 7'
+      }
+    ];
+  examPrepTips: |
+      Give me some exam preparation tips in an array
+      of strings. The array should be in valid json syntax.
+      This is for students in grades 9-12. 
+      The reading level should be for grade 6. 
+      Each tip should be no more than 50 words.
+      Dont' assign the array to a variable. Just give me the array. 
+  motivation: |
+    Give me 10 motivational quotes and provide attribution. 
+    Give them to me in an array of strings. 
+    The array must be in valid JSON syntax.
+    Dont' assign the array to a variable. Just give me the array. 
+    They aren't limited to math. 
+    Provide attribution in the same string, but separated by a newline. 
+    Ensure the quote is wrapped in quotation marks, Like so:
+    ```
+    '"Quote"
+
+    - Author
+    '
+    ```

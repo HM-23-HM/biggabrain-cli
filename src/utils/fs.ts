@@ -7,6 +7,7 @@ interface PromptsConfig {
   generateQans: string;
   editingNotes: string;
   classify: string;
+  doubleCheck: string;
 }
 
 interface SyllabusConfig {

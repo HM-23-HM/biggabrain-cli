@@ -4,4 +4,5 @@ outbound/
 staging/
 archive/
 saved/
+ignore/
 .env

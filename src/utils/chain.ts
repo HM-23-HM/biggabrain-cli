@@ -100,3 +100,7 @@ export const classifyQuestions = async (questions: string[]) => {
   console.log("classifiedQuestions saved to file");
   return content;
 }
+
+export const doubleCheckQans = async (qans: string[]) => {
+  return sendPrompt(`${promptsConfig.doubleCheck}\n\nQuestions\n${formatObjQuestions(qans)}`);
+}

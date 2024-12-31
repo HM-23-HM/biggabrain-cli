@@ -1,10 +1,11 @@
 import { MessageContent } from "@langchain/core/messages";
 import * as path from "path";
 import {
-    classifyQuestions,
-    generateQansWorkload,
-    getQuestionFromImage,
-    getUnansweredQues
+  classifyQuestions,
+  doubleCheckQans,
+  generateQansWorkload,
+  getQuestionFromImage,
+  getUnansweredQues
 } from "./src/utils/chain";
 import { convertPdfToPng } from "./src/utils/conversion";
 import { appendToFile, appendToJsonFile, getFilenames } from "./src/utils/fs";
@@ -13,6 +14,18 @@ import { moveFiles } from "./src/utils/post";
 
 const inboundDir = path.join(__dirname, "inbound");
 const stagingDir = path.join(__dirname, "staging");
+
+async function processInBatches<T, R>(items: T[], batchSize: number, processBatch: (batch: T[]) => Promise<R>): Promise<R[]> {
+    const results: R[] = [];
+
+    for (let i = 0; i < items.length; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+        const batchResults = await processBatch(batch);
+        results.push(batchResults);
+    }
+
+    return results;
+}
 
 const main = async () => {
   try {
@@ -42,7 +55,7 @@ const main = async () => {
     // Step 4 - Generate Q&A
     const combinedQans: string[] = [];
     const maxIterations = 2; // Set the maximum number of iterations
-    const batchSize = 3; // Set the batch size
+    const batchSize = 2; // Set the batch size
     let iterations = 0;
     let unanswered: MessageContent[] = questions;
 
@@ -78,19 +91,13 @@ const main = async () => {
       console.log("All questions answered.");
     }
 
-    // Step 5 - Save Q&A to file
     const content = JSON.stringify(combinedQans, null, 2);
     appendToFile("combined.json", content);
 
-    const classifiedResults = [];
+    const classifiedResults = await processInBatches<string,string>(combinedQans, batchSize, classifyQuestions);
+    const doubleChecked = await processInBatches(classifiedResults, batchSize, doubleCheckQans)
 
-    for (let i = 0; i < combinedQans.length; i += batchSize) {
-      const batch = combinedQans.slice(i, i + batchSize);
-      const classifiedBatch = await classifyQuestions(batch);
-      classifiedResults.push(...classifiedBatch);
-    }
-
-    classifiedResults.forEach((result) => {
+    doubleChecked.forEach((result) => {
       const parsed = parseOrReturnString(result);
       if (typeof parsed == "string") {
         appendToFile("classified.txt", parsed, "outbound");

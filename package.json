@@ -15,7 +15,8 @@
   "homepage": "https://github.com/HM-23-HM/bigga-brain-chain#readme",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx tsx index.ts"
+    "start": "npx tsx index.ts",
+    "genmar": "npx tsx generateMar.ts"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

@@ -137,3 +137,7 @@ export  function fixKatexSyntax(jsonStrings: string[]): string[] {
     return fixed;
   });
 }
+
+export const getJsArray = (input: string): string[] => {
+  return JSON.parse(stripLLMOutputMarkers(input));
+};

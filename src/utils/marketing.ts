@@ -42,7 +42,7 @@ async function generateHtml(
   const templateSource = fs.readFileSync(templatePath, "utf-8");
   const template = handlebars.compile(templateSource);
 
-  const logoPath = path.resolve("", "./assets/logo.png");
+  const logoPath = path.resolve("", "./assets/logo.svg");
   const commonConfig = {
     backgroundColor: contentColorMap[type],
     logoPath,

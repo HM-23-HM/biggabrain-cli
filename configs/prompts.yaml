@@ -50,7 +50,6 @@ editingNotes: |
           - Keep paragraphs brief and use `<p>` tags.
           - Use ordered lists (`<ol>`) for steps and unordered lists (`<ul>`) for bullet points.
           - Use `<strong>` for emphasis on important words/phrases and `<em>` for regular emphasis.
-          - Use `<mark>` to highlight key terms or definitions.
           - Ensure that mathematical expressions are in KaTeX format inside `[tex]` and `[/tex]` tags.
           - Use `<br>` sparingly, only for line breaks within paragraphs or code blocks.
           - Ensure links are descriptive if used within the solution or notes.

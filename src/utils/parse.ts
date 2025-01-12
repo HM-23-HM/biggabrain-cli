@@ -1,14 +1,8 @@
-export function parseJsonString(input: string) {
-  // // First, find the actual JSON content between the backticks
-  // const jsonMatch = input.match(/```json\n([\s\S]*?)```/);
+import { Qans } from "./chain";
+import { WorkedExampleContent } from "./marketing";
 
-  // if (!jsonMatch || !jsonMatch[1]) {
-  //   throw new Error("No valid JSON content found between backticks");
-  // }
-  
+export function parseJsonString(input: string) {
   try {
-    // Parse the matched content (jsonMatch[1] contains the actual JSON string)
-    // return JSON.parse(jsonMatch[1]);
     const stripped = stripLLMOutputMarkers(input)
     return JSON.parse(stripped)
   } catch (error) {
@@ -143,3 +137,51 @@ export  function fixKatexSyntax(jsonStrings: string[]): string[] {
 export const getJsArray = (input: string): string[] => {
   return JSON.parse(stripLLMOutputMarkers(input));
 };
+
+export function extractQuestionAndSolution(obj: Qans & { questionId: string }): WorkedExampleContent[] {
+  const result = [];
+  
+  // Add the question as the first string
+  if (obj.question) {
+    result.push({ content: obj.question.trim(), questionId: obj.questionId });
+  }
+  
+  // Extract steps from the solution
+  if (obj.solution) {
+    // Match all solution steps starting with <h3>
+    const steps = obj.solution.match(/<h3>.*?<\/h3>.*?(?=<h3>|$)/g);
+    if (steps) {
+      result.push(...steps.map(step => ({ content: step.trim(), questionId: obj.questionId })));
+    }
+  }
+  
+  return result;
+}
+
+export function wrapTextOutsideTex(input: string): string {
+  // Use a regex to find all strings outside [tex]...[/tex] and wrap them in \text{}
+  return input.replace(/(?:<[^>]+>)([^<\[]+)(?=<\/[^>]+>)/g, (match, content) => {
+    return match.replace(content, `[tex]\\text{${content.trim()}}[/tex]`);
+  });
+}
+
+export function wrapWithLargeInTexTags(input: string): string {
+  return input.replace(/\[tex\](.*?)\[\/tex\]/g, (match, content) => {
+    return `[tex]\\huge{${content}}[/tex]`;
+  });
+}
+
+export function wrapTextWithSmall(input: string): string {
+  // Match all \text{...} tags and wrap them with \small{}
+  return input.replace(/\\text\{(.*?)\}/g, (match, content) => `\\large{\\text{${content}}}`);
+}
+
+export function stripTextFunctions(input: string): string {
+  // Match \text{} and capture the content inside {}
+  return input.replace(/\\text\{(.*?)\}/g, (match, content) => `<p>${content}</p>`);
+}
+
+export function stripTopmostPTags(input: string): string {
+  // Use a regular expression to match top-level <p> tags and their closing counterparts
+  return input.replace(/^<p>(.*?)<\/p>$/g, '$1');
+}

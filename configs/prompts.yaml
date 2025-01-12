@@ -32,6 +32,7 @@ editingNotes: |
       - Enclose every mathematical expression in `[tex]` and `[/tex]` tags for proper rendering.
       - Use valid KaTeX notation for all expressions (e.g., no exponential notation like `^2` or fractions like `a/b` unless converted to KaTeX).
       - If you need to write an exponent, use KaTeX's `^` for exponents (e.g., `x^2`), and fractions should be written as `\frac{a}{b}`.
+      - Prepend each \frac with \huge, for example `\huge \frac{a}{b}`
   6. Round all decimals to 2 decimal places and indicate the same.
   7. Present your response in a JSON object with the following keys:
       - `question` (string): The new question.
@@ -45,7 +46,7 @@ editingNotes: |
   9. For the `solutions` and `notes` sections:
       - Avoid using section headers like `<h3>Solution</h3>` or `<h3>Notes</h3>`.
       - Follow these HTML guidelines for formatting:
-          - Use `<h3>` for main sections.
+          - Use `<h3>` for main sections. Especially in the solutions.
           - Use `<h4>` only if absolutely necessary (keep the hierarchy flat).
           - Keep paragraphs brief and use `<p>` tags.
           - Use ordered lists (`<ol>`) for steps and unordered lists (`<ul>`) for bullet points.

@@ -1,26 +1,25 @@
 
 
 import { sendPrompt } from "./src/utils/chain";
-import { promptsConfig } from "./src/utils/fs";
-import { ContentType, generateMarketingContent } from "./src/utils/marketing";
+import { ContentType, generateMarketingContent, generateWorkedExamples, WorkedExampleContent } from "./src/utils/marketing";
 import { getJsArray } from "./src/utils/parse";
 
 const contentToPromptMap: { [K in ContentType]: string } = {
-  //   Quizzes: "",
-  // "Exam Tips": "",
-  // "Motivational Quote": "",
-  "Math in Real Life": "",
-  Quizzes: promptsConfig.marketing.quizzes,
-  "Exam Tips": promptsConfig.marketing.examPrepTips,
-  "Motivational Quote": promptsConfig.marketing.motivation,
+    Quizzes: "",
+  "Exam Tips": "",
+  "Motivational Quote": "",
+  "Worked Example": "",
+  // Quizzes: promptsConfig.marketing.quizzes,
+  // "Exam Tips": promptsConfig.marketing.examPrepTips,
+  // "Motivational Quote": promptsConfig.marketing.motivation,
 };
 
 const main = async () => {
-  const sourceMaterial: { [K in ContentType]: string[] } = {
+  const sourceMaterial: { [K in ContentType]: (string | WorkedExampleContent)[] } = {
     Quizzes: [],
     "Exam Tips": [],
     "Motivational Quote": [],
-    "Math in Real Life": [],
+    "Worked Example": [],
   };
 
   for (const key in sourceMaterial) {
@@ -31,9 +30,14 @@ const main = async () => {
     }
   }
 
+  const workedExamples = generateWorkedExamples();
+  console.log("Worked examples generated");
+  sourceMaterial["Worked Example"].push(...workedExamples)
+
   console.log("Source material generated")
   await generateMarketingContent(sourceMaterial)
   console.log("Marketing content generated")
+
 };
 
 main();

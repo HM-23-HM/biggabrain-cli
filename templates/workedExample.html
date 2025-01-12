@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bigga Brain Template</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: {{backgroundColor}};
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      position: relative;
+    }
+    .container {
+      text-align: center;
+    }
+    .logo {
+      padding-top: 10px;
+    }
+    .quote {
+      color: #F3F4F7;
+      margin-left: 10px;
+      margin-right: 10px;
+      letter-spacing: 0.5px; /* Adjust letter spacing */
+      word-spacing: 2px; /* Adjust word spacing */
+    }
+    h3 {
+      font-size: 36px;
+      color: #F3F4F7;
+    }
+    p {
+      font-size: 24px;
+      color: #F3F4F7;
+    }
+    .top-right {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      font-size: 16px;
+      color: #F3F4F7;
+      background: rgba(255, 255, 255, 0.8); /* Optional background for better visibility */
+      padding: 5px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="top-right">
+    {{questionId}}
+  </div>
+  <div class="container">
+    <p class="quote" id="katex-container">{{{quote}}}</p>
+  </div>
+  <script>
+    // Select the container where the LaTeX will render
+    const katexContainer = document.getElementById('katex-container');
+
+    // Render the LaTeX string processed by Handlebars
+    try {
+      katex.render(katexContainer.innerHTML, katexContainer, {
+        throwOnError: false
+      });
+    } catch (error) {
+      console.error('Error rendering LaTeX:', error);
+    }
+  </script>
+</body>
+</html>

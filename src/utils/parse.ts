@@ -151,7 +151,7 @@ export function extractQuestionAndSolution(obj: Qans & { questionId: string }): 
     // Match all solution steps starting with <h3>
     const steps = obj.solution.match(/<h3>.*?<\/h3>.*?(?=<h3>|$)/g);
     if (steps) {
-      result.push(...steps.map(step => ({ content: step.trim(), questionId: obj.questionId })));
+      result.push(...(steps.map(step => ({ content: step.trim(), questionId: obj.questionId }))));
     }
   }
   

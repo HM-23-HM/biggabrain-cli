@@ -130,7 +130,7 @@ export const generateMarketingContent = async (sourceMaterial: {
     }
   }
 
-  // await cleanupHtml();
+  await cleanupHtml();
 };
 
 export function parseKatex(source: string): string {
@@ -175,5 +175,6 @@ export function generateWorkedExamples(): WorkedExampleContent[] {
     questionId: item.questionId,
     content: formatContent(item.content),
   }));
+  console.log({ formatted })
   return formatted;
 }

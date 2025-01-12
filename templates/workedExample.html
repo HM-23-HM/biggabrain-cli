@@ -12,33 +12,35 @@
       margin: 0;
       padding: 0;
       font-family: Arial, sans-serif;
-      background-color: {{backgroundColor}};
+      background-color: #2D3142;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      position: relative;
     }
     .container {
+      max-width: 90%; /* Limit width to 90% of the viewport */
       text-align: center;
-    }
-    .logo {
-      padding-top: 10px;
+      word-wrap: break-word; /* Allow long words to break */
+      overflow-wrap: break-word; /* Modern alternative */
     }
     .quote {
       color: #F3F4F7;
-      margin-left: 10px;
-      margin-right: 10px;
-      letter-spacing: 0.5px; /* Adjust letter spacing */
-      word-spacing: 2px; /* Adjust word spacing */
+      letter-spacing: 0.5px;
+      word-spacing: 2px;
     }
     h3 {
       font-size: 36px;
       color: #F3F4F7;
     }
-    p {
+    p, li {
       font-size: 24px;
       color: #F3F4F7;
+      line-height: 1.6; /* Increase line spacing for better readability */
+      margin: 0 auto; /* Center text horizontally */
+    }
+    ol {
+      padding-left: 20px; /* Indent ordered list items */
     }
     .top-right {
       position: absolute;
@@ -46,7 +48,7 @@
       right: 5px;
       font-size: 16px;
       color: #F3F4F7;
-      background: rgba(255, 255, 255, 0.8); /* Optional background for better visibility */
+      background: rgba(255, 255, 255, 0.8);
       padding: 5px;
       border-radius: 4px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -54,9 +56,6 @@
   </style>
 </head>
 <body>
-  <div class="top-right">
-    {{questionId}}
-  </div>
   <div class="container">
     <p class="quote" id="katex-container">{{{quote}}}</p>
   </div>

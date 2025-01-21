@@ -16,7 +16,8 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      height: 1080px;
+      width: 1350px;
     }
     .container {
       max-width: 90%; /* Limit width to 90% of the viewport */
@@ -59,18 +60,5 @@
   <div class="container">
     <p class="quote" id="katex-container">{{{quote}}}</p>
   </div>
-  <script>
-    // Select the container where the LaTeX will render
-    const katexContainer = document.getElementById('katex-container');
-
-    // Render the LaTeX string processed by Handlebars
-    try {
-      katex.render(katexContainer.innerHTML, katexContainer, {
-        throwOnError: false
-      });
-    } catch (error) {
-      console.error('Error rendering LaTeX:', error);
-    }
-  </script>
 </body>
 </html>

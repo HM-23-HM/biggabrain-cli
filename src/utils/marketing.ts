@@ -9,8 +9,8 @@ import { Qans } from "./chain";
 import {
   extractQuestionAndSolution,
   wrapTextOutsideTex,
-  wrapTextWithSmall,
-  wrapWithLargeInTexTags
+  wrapTextWith,
+  wrapTexContentWith
 } from "./parse";
 
 export type ContentType =
@@ -138,6 +138,9 @@ export function parseKatex(source: string): string {
     try {
       return katex.renderToString(p1, {
         throwOnError: false,
+        displayMode: true,
+        maxSize: 2,
+        minRuleThickness: 0.05
       });
     } catch (error) {
       console.error("KaTeX rendering error:", error);
@@ -156,10 +159,13 @@ export function addquestionId(qans: Qans) {
   return { ...qans, questionId: getRandomLetter() };
 }
 
-const formatContent = (content: string) =>
-  parseKatex(
-    wrapTextWithSmall(wrapWithLargeInTexTags(wrapTextOutsideTex(content)))
-  );
+const formatContent = (content: string) => {
+  const withOutsideTextWrapped = wrapTextOutsideTex(content);
+  const withLargeInTexTags = wrapTexContentWith(withOutsideTextWrapped);
+  const withSmallText = wrapTextWith(withLargeInTexTags);
+  const parsed = parseKatex(withSmallText);
+  return parsed;
+}
 
 export type WorkedExampleContent = { questionId: string; content: string };
 
@@ -175,6 +181,5 @@ export function generateWorkedExamples(): WorkedExampleContent[] {
     questionId: item.questionId,
     content: formatContent(item.content),
   }));
-  console.log({ formatted })
   return formatted;
 }

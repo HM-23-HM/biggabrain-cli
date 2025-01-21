@@ -3,33 +3,46 @@ import * as path from "path";
 import {
   classifyQuestions,
   doubleCheckQans,
+  expandSolutions,
   formatObjQuestions,
   generateQansWorkload,
   getQuestionFromImage,
-  getUnansweredQues
+  getUnansweredQues,
 } from "./src/utils/chain";
 import { convertPdfToPng } from "./src/utils/conversion";
 import { appendToFile, appendToJsonFile, getFilenames } from "./src/utils/fs";
-import { parseOrReturnString } from "./src/utils/parse";
+import {
+  extractAndSaveJsonStrings,
+  extractValidJsonStringsFromFile,
+  parseOrReturnString,
+  processQuestionFile,
+  stripLLMOutputMarkers,
+} from "./src/utils/parse";
 import { moveFiles } from "./src/utils/cleanup";
 import { fixExcessiveBackslashes } from "./src/utils/validation";
+import { readFileSync } from "fs";
 
 const inboundDir = path.join(__dirname, "inbound");
 const stagingDir = path.join(__dirname, "staging");
 
-async function processInBatches<T, R>(items: T[], batchSize: number, processBatch: (batch: T[]) => Promise<R>): Promise<R[]> {
-    const results: R[] = [];
+async function processInBatches<T, R>(
+  items: T[],
+  batchSize: number,
+  processBatch: (batch: T[]) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = [];
 
-    for (let i = 0; i < items.length; i += batchSize) {
-        const batch = items.slice(i, i + batchSize);
-        const batchResults = await processBatch(batch);
-        results.push(batchResults);
-    }
+  for (let i = 0; i < items.length; i += batchSize) {
+    console.log(`Processing batch ${Math.floor(i / batchSize) + 1} of ${Math.ceil(items.length / batchSize)}`);
+    const batch = items.slice(i, i + batchSize);
+    const batchResults = await processBatch(batch);
+    results.push(batchResults);
+  }
 
-    return results;
+  return results;
 }
 
-const main = async () => {
+const primary = async () => {
   try {
     // Step 1 - Read all files in the inbound directory
     const pdfFiles = getFilenames("inbound", "pdf");
@@ -50,9 +63,8 @@ const main = async () => {
       const question = await getQuestionFromImage(filePath);
       questions.push(question);
     }
-    
-    console.log("questions saved to file");
 
+    console.log("questions saved to file");
 
     // Step 4 - Generate Q&A
     const combinedQans: string[] = [];
@@ -97,29 +109,74 @@ const main = async () => {
     const content = JSON.stringify(combinedQans, null, 2);
     appendToFile("combined.json", content);
 
-    const classifiedResults = await processInBatches<string,string>(combinedQans, batchSize, classifyQuestions);
+    const classifiedResults = await processInBatches<string, string>(
+      combinedQans,
+      batchSize,
+      classifyQuestions
+    );
     console.log("classification complete");
     const wFixedKatex = fixExcessiveBackslashes(classifiedResults);
     console.log("katex fixed");
-    const doubleChecked = await processInBatches(wFixedKatex, batchSize, doubleCheckQans);
+    const doubleChecked = await processInBatches(
+      wFixedKatex,
+      batchSize,
+      doubleCheckQans
+    );
     console.log("double check complete");
 
     doubleChecked.forEach((result) => {
-      const parsed = parseOrReturnString(result);
-      if (typeof parsed == "string") {
-        appendToFile("classified.txt", parsed, "outbound");
-      } else {
-        appendToJsonFile("classified.json", [parsed], "outbound");
-      }
+      const parsed = stripLLMOutputMarkers(result);
+      appendToFile("classified.txt", parsed, "outbound");
     });
 
     console.log("Classification complete.");
+
+    
   } catch (err) {
     console.error("Error in main function:", err);
   } finally {
     await moveFiles();
     console.log("Files moved successfully.");
   }
+};
+
+const secondary = async () => {
+  const batchSize = 3;
+  const fileContents = readFileSync("outbound/classified.txt", "utf-8");
+  const { validObjects } = processQuestionFile(fileContents);
+
+  console.log(`There are ${validObjects.length} questions to expand.`);
+
+  const expandedSolutions = await processInBatches(
+    validObjects,
+    batchSize,
+    expandSolutions
+  );
+  console.log("Solutions expanded.");
+
+  expandedSolutions.forEach((result) => {
+    const parsed = stripLLMOutputMarkers(result);
+    appendToFile("expandedSolutions.txt", parsed, "outbound");
+  });
+
+  console.log("Solutions appended to file.");
+}
+
+const main = async () => {
+// The first two elements are node path and script path
+const [,, ...args] = process.argv;
+console.log(args); // Array of arguments
+
+switch (args[0]) {
+  case "p":
+    primary();
+    break;
+  case "s":
+    secondary();
+    break;
+  default:
+    console.log("Invalid argument");
+}
 };
 
 main();

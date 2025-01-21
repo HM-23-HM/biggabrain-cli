@@ -16,7 +16,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx tsx index.ts",
-    "genmar": "npx tsx generateMar.ts"
+    "genmar": "npx tsx generateMar.ts",
+    "temp": "npx tsx temp.ts"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

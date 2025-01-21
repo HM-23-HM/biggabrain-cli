@@ -24,7 +24,7 @@ export const sendPrompt = async (
   while (attempts < maxRetries) {
     try {
       if (attempts > 0) {
-        console.log(`Retrying...`);
+        console.log(`Retrying prompt: ${prompt.slice(0, 50)}...`);
       }
       const input = image ? [prompt, image] : prompt;
       const result = await model.generateContent(input);
@@ -33,7 +33,7 @@ export const sendPrompt = async (
       if (err.status === 429 || err.status === 503) {
         attempts++;
         console.error(
-          `${err.status} Error. Attempt ${attempts} of ${maxRetries}. Retrying in ${waitFor} minutes...`,
+          `${err.status} Error. Attempt ${attempts} of ${maxRetries}. Retrying prompt: ${prompt.slice(0, 50)}... in ${waitFor} minutes...`,
         );
         await new Promise((resolve) =>
           setTimeout(resolve, waitFor * 60 * 1000)
@@ -102,4 +102,9 @@ export const classifyQuestions = async (questions: string[]) => {
 
 export const doubleCheckQans = async (qans: string[]) => {
   return sendPrompt(`${promptsConfig.doubleCheck}\n\nQuestions\n${formatObjQuestions(qans)}`);
+}
+
+export const expandSolutions = async (qans: string[]) => {
+  const formattedQans = formatStringQuestions(qans);
+  return sendPrompt(`Questions\n${formattedQans}\nInstructions:\n${promptsConfig.expandSolution}\n\Editing notes:\n${promptsConfig.editingNotes}`);
 }

@@ -1,5 +1,6 @@
 import { Qans } from "./chain";
 import { WorkedExampleContent } from "./marketing";
+import fs from "fs";
 
 export function parseJsonString(input: string) {
   try {
@@ -165,15 +166,15 @@ export function wrapTextOutsideTex(input: string): string {
   });
 }
 
-export function wrapWithLargeInTexTags(input: string): string {
+export function wrapTexContentWith(input: string, type: "large" | "small" | "huge" = "huge"): string {
   return input.replace(/\[tex\](.*?)\[\/tex\]/g, (match, content) => {
-    return `[tex]\\huge{${content}}[/tex]`;
+    return `[tex]\\${type}{${content}}[/tex]`;
   });
 }
 
-export function wrapTextWithSmall(input: string): string {
+export function wrapTextWith(input: string, type: "large" | "small" | "huge" = "huge"): string {
   // Match all \text{...} tags and wrap them with \small{}
-  return input.replace(/\\text\{(.*?)\}/g, (match, content) => `\\large{\\text{${content}}}`);
+  return input.replace(/\\text\{(.*?)\}/g, (match, content) => `\\${type}{\\text{${content}}}`);
 }
 
 export function stripTextFunctions(input: string): string {
@@ -185,3 +186,149 @@ export function stripTopmostPTags(input: string): string {
   // Use a regular expression to match top-level <p> tags and their closing counterparts
   return input.replace(/^<p>(.*?)<\/p>$/g, '$1');
 }
+
+/**
+ * Extracts JSON objects from a string that are wrapped in ```json...``` tags.
+ * 
+ * @param input - The string containing JSON objects.
+ * @returns An array of JSON objects extracted from the input string.
+ */
+export function extractJsonObjects(input: string): string[] {
+  const regex = /```json\s*([\s\S]*?)\s*```/g;
+  const matches = [];
+  let match;
+
+  while ((match = regex.exec(input)) !== null) {
+      matches.push(match[1].trim()); // Extract JSON content and trim whitespace
+  }
+
+  return matches;
+}
+
+export function extractAndSaveJsonStrings(input: string, filename: string = 'output.json'): void {
+  const regex = /```json\s*([\s\S]*?)\s*```/g;
+  const matches: string[] = [];
+  let match;
+
+  while ((match = regex.exec(input)) !== null) {
+      let cleanedJson = match[1].replace(/\n/g, '').trim(); // Remove newlines and trim spaces
+      cleanedJson = cleanedJson.replace(/^"\{/, '{').replace(/\}"$/, '}'); // Remove surrounding quotes
+      matches.push(cleanedJson);
+  }
+
+  try {
+      fs.writeFileSync(filename, JSON.stringify(matches, null, 2)); // Save cleaned JSON strings as an array
+      console.log(`✅ JSON strings saved successfully to ${filename}`);
+  } catch (error) {
+      console.error("❌ Error saving JSON strings:", error);
+  }
+}
+
+export function extractValidJsonStringsFromFile(filePath: string): string[] {
+  try {
+    const fileContent = fs.readFileSync(filePath, "utf-8");
+
+    // Match objects starting with `{` and ending with `}`
+    const jsonRegex = /{[\s\S]*?}/g;
+    const matches = fileContent.match(jsonRegex);
+
+    if (!matches) {
+        console.error("No valid JSON objects found in the file.");
+        return [];
+    }
+
+    // Filter out malformed JSON by checking if parsing succeeds
+    const validJsonStrings = matches.filter(jsonString => {
+        try {
+            JSON.parse(jsonString); // Test parsing but do not store the parsed object
+            return true;
+        } catch {
+            return false;
+        }
+    });
+
+    return validJsonStrings;
+} catch (error) {
+    console.error("Error reading file:", error);
+    return [];
+}
+}
+
+type QuestionFile = {
+  content: string;
+  validObjects: string[];
+  invalidObjects: string[];
+};
+
+export const processQuestionFile = (fileContent: string): QuestionFile => {
+  const result: QuestionFile = {
+    content: fileContent,
+    validObjects: [],
+    invalidObjects: []
+  };
+
+  // Split the content by "json" marker
+  const objects = fileContent.split('json\n');
+  
+  // Skip the first element as it might be empty or contain other text
+  for (let i = 1; i < objects.length; i++) {
+    let obj = objects[i].trim();
+    
+    // Find the start and end of the JSON-like object
+    const startBrace = obj.indexOf('{');
+    const lastBrace = obj.lastIndexOf('}');
+    
+    if (startBrace === -1 || lastBrace === -1) {
+      continue; // Skip if not a proper JSON-like structure
+    }
+
+    // Extract the potential JSON object
+    const jsonString = obj.substring(startBrace, lastBrace + 1);
+
+    // Add to appropriate array based on completeness
+    if (isCompleteObject(jsonString)) {
+      result.validObjects.push(jsonString);
+    } else {
+      result.invalidObjects.push(jsonString);
+    }
+  }
+
+  return result;
+};
+
+const isCompleteObject = (jsonString: string): boolean => {
+  // Count opening and closing braces
+  let braceCount = 0;
+  let inString = false;
+  let escapeNext = false;
+
+  for (let i = 0; i < jsonString.length; i++) {
+    const char = jsonString[i];
+
+    if (escapeNext) {
+      escapeNext = false;
+      continue;
+    }
+
+    if (char === '\\') {
+      escapeNext = true;
+      continue;
+    }
+
+    if (char === '"' && !escapeNext) {
+      inString = !inString;
+      continue;
+    }
+
+    if (!inString) {
+      if (char === '{') braceCount++;
+      if (char === '}') braceCount--;
+
+      // If braces become unbalanced negatively, it's incomplete
+      if (braceCount < 0) return false;
+    }
+  }
+
+  // Object is complete if braces are balanced
+  return braceCount === 0;
+};

@@ -72,6 +72,7 @@ doubleCheck: |
     - Do not remove any fields or content
     - Only fix KaTeX syntax issues
     - Provide no explanation - only the corrected JSON
+    - I don't want to see any corrections midway through the solutions or notes (like `Oops! I made a mistake earlier.`). Just give me the correct response.
 marketing:
   quizzes: |
     Based on the following sections of a syllabus, create 5 short
@@ -145,3 +146,20 @@ marketing:
     - Author
     '
     ```
+expandSolution: |
+      For each of the questions above, re-write the solution in a way that abides by the following rules:
+      Write the solutions as if you're explaining the concept to a learner in a friendly, conversational way. 
+      Imagine you're walking them through the steps, step-by-step, in a tone similar to Sal Khan from Khan Academy. 
+      Be approachable, brief, and guide them as if you're teaching the concept during a tutoring session.
+      Each step will be eventually converted to a photo, so make sure that each step in the solution is less than 60 words.
+      Each step should begin with an <h3> tag. Each heading should begin with the numbered step, for example <h3>Step 1: ...</h3>. All math should abide by the KaTeX syntax outlined in the editing notes.
+      Each advancement in the solution should be a new line.
+      Return each question with all of its original fields, including the solution and section. Leave the other fields unchanged. However, the solution should be re-written to abide by the rules above.
+      Ensure that the solution is consistent with the answer and the notes.
+      Return the response as valid JSON.
+      Don't include greetings like "Hey there!" or "Let's get started!" in the solution.
+      Each line of the solution should be no more than 40 characters long. If it is longer, break it up into multiple lines within multiple <p> tags.
+      Ensure that each sentence in the solution is started on a new line, so use a <p> tag for each sentence.
+      Ensure that the solution abides by the following editing notes:
+
+      

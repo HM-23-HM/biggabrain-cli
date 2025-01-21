@@ -4,6 +4,7 @@ import * as yaml from "js-yaml";
 
 interface PromptsConfig {
   imageToText: string;
+  expandSolution: string;
   generateQans: string;
   editingNotes: string;
   classify: string;

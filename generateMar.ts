@@ -15,6 +15,7 @@ const contentToPromptMap: { [K in ContentType]: string } = {
 };
 
 const main = async () => {
+  console.log("Generating source material")
   const sourceMaterial: { [K in ContentType]: (string | WorkedExampleContent)[] } = {
     Quizzes: [],
     "Exam Tips": [],

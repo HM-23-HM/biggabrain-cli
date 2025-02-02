@@ -8,7 +8,7 @@ import {
   generateQansWorkload,
   getQuestionFromImage,
   getUnansweredQues,
-} from "./src/utils/chain";
+} from "./src/utils/ai";
 import { convertPdfToPng } from "./src/utils/conversion";
 import { appendToFile, appendToJsonFile, getFilenames } from "./src/utils/fs";
 import {
@@ -21,26 +21,10 @@ import {
 import { moveFiles } from "./src/utils/cleanup";
 import { fixExcessiveBackslashes } from "./src/utils/validation";
 import { readFileSync } from "fs";
+import { processInBatches } from "./src/utils";
 
 const inboundDir = path.join(__dirname, "inbound");
 const stagingDir = path.join(__dirname, "staging");
-
-async function processInBatches<T, R>(
-  items: T[],
-  batchSize: number,
-  processBatch: (batch: T[]) => Promise<R>
-): Promise<R[]> {
-  const results: R[] = [];
-
-  for (let i = 0; i < items.length; i += batchSize) {
-    console.log(`Processing batch ${Math.floor(i / batchSize) + 1} of ${Math.ceil(items.length / batchSize)}`);
-    const batch = items.slice(i, i + batchSize);
-    const batchResults = await processBatch(batch);
-    results.push(batchResults);
-  }
-
-  return results;
-}
 
 const primary = async () => {
   try {

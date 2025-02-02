@@ -1,4 +1,4 @@
-import { Qans } from "./chain";
+import { Qans } from "./ai";
 import { WorkedExampleContent } from "./marketing";
 import fs from "fs";
 
@@ -81,7 +81,7 @@ export  function fixKatexSyntax(jsonStrings: string[]): string[] {
   // 3) Currency symbols outside of math mode: replace `$` with `\\$` unless it's inside [tex].
   //    We'll do a quick pass on anything outside [tex] blocks.
   //    A naive approach: strip out [tex]...[/tex] temporarily, fix $ in the remainder, then reinsert.
-  //    For brevity, we’ll do a simple replacement with a negative lookbehind for \ and ignoring
+  //    For brevity, we'll do a simple replacement with a negative lookbehind for \ and ignoring
   //    anything inside [tex].
   const dollarSignOutsideMath = /(?<!\\)\$/g;
 
@@ -332,3 +332,22 @@ const isCompleteObject = (jsonString: string): boolean => {
   // Object is complete if braces are balanced
   return braceCount === 0;
 };
+
+/**
+ * Removes all content between <think></think> tags, including the tags themselves.
+ * 
+ * @param input - The string containing potential <think> tags
+ * @returns The string with all <think> content removed
+ * 
+ * @example
+ * removeThinkTags("Hello <think>this will be removed</think> World")
+ * // Returns: "Hello World"
+ * 
+ * @example
+ * removeThinkTags("No tags here")
+ * // Returns: "No tags here"
+ */
+export function removeThinkTags(input: string): string {
+  return input.replace(/<think>[\s\S]*?<\/think>/g, '');
+}
+

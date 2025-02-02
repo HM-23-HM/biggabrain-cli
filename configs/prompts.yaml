@@ -126,12 +126,12 @@ marketing:
       }
     ];
   examPrepTips: |
-      Give me some exam preparation tips in an array
-      of strings. The array should be in valid json syntax.
-      This is for students in grades 9-12. 
-      The reading level should be for grade 6. 
-      Each tip should be no more than 50 words.
-      Dont' assign the array to a variable. Just give me the array. 
+    Give me some exam preparation tips in an array
+    of strings. The array should be in valid json syntax.
+    This is for students in grades 9-12. 
+    The reading level should be for grade 6. 
+    Each tip should be no more than 50 words.
+    Dont' assign the array to a variable. Just give me the array.
   motivation: |
     Give me 10 motivational quotes and provide attribution. 
     Give them to me in an array of strings. 
@@ -147,19 +147,30 @@ marketing:
     '
     ```
 expandSolution: |
-      For each of the questions above, re-write the solution in a way that abides by the following rules:
-      Write the solutions as if you're explaining the concept to a learner in a friendly, conversational way. 
-      Imagine you're walking them through the steps, step-by-step, in a tone similar to Sal Khan from Khan Academy. 
-      Be approachable, brief, and guide them as if you're teaching the concept during a tutoring session.
-      Each step will be eventually converted to a photo, so make sure that each step in the solution is less than 60 words.
-      Each step should begin with an <h3> tag. Each heading should begin with the numbered step, for example <h3>Step 1: ...</h3>. All math should abide by the KaTeX syntax outlined in the editing notes.
-      Each advancement in the solution should be a new line.
-      Return each question with all of its original fields, including the solution and section. Leave the other fields unchanged. However, the solution should be re-written to abide by the rules above.
-      Ensure that the solution is consistent with the answer and the notes.
-      Return the response as valid JSON.
-      Don't include greetings like "Hey there!" or "Let's get started!" in the solution.
-      Each line of the solution should be no more than 40 characters long. If it is longer, break it up into multiple lines within multiple <p> tags.
-      Ensure that each sentence in the solution is started on a new line, so use a <p> tag for each sentence.
-      Ensure that the solution abides by the following editing notes:
+  For each of the questions above, re-write the solution in a way that abides by the following rules:
+  Write the solutions as if you're explaining the concept to a learner in a friendly, conversational way. 
+  Imagine you're walking them through the steps, step-by-step, in a tone similar to Sal Khan from Khan Academy. 
+  Be approachable, brief, and guide them as if you're teaching the concept during a tutoring session.
+  Each step will be eventually converted to a photo, so make sure that each step in the solution is less than 60 words.
+  Each step should begin with an <h3> tag. Each heading should begin with the numbered step, for example <h3>Step 1: ...</h3>. All math should abide by the KaTeX syntax outlined in the editing notes.
+  Each advancement in the solution should be a new line.
+  Return each question with all of its original fields, including the solution and section. Leave the other fields unchanged. However, the solution should be re-written to abide by the rules above.
+  Ensure that the solution is consistent with the answer and the notes.
+  Return the response as valid JSON.
+  Don't include greetings like "Hey there!" or "Let's get started!" in the solution.
+  Each line of the solution should be no more than 40 characters long. If it is longer, break it up into multiple lines within multiple <p> tags.
+  Ensure that each sentence in the solution is started on a new line, so use a <p> tag for each sentence.
+  Ensure that the solution abides by the following editing notes:
+correctness: |
+  Review each object for the accuracy of the answer to the question. 
+  Then, review each object for consistency between the answer and the solution in substance not style. 
+  If the answer is correct and consistent with the solution, then return the object as is. 
+  If there are errors or inconsistencies between the answer and the solution, return only the corrected objects with the relevant fields updated. 
+  Include all fields (question, answer, solution, notes, and section) for the corrected objects, even if they are unchanged.
+  Do not omit, alter, or summarize any field unless explicitly instructed to do so.
+  I don't want to see any corrections midway through the solutions or notes (like `Oops! I made a mistake earlier.`). Just give me the correct response. 
+  Do not explain the errors or provide extra information, just update the answer or solution field(s) in the returned objects.
+  Spend no more than 1 minute thinking about each question.
+  If you make any changes, please abide by the editing notes.
 
-      
+  Here are the questions:

@@ -1,6 +1,6 @@
 
 
-import { sendPrompt } from "./src/utils/chain";
+import { sendPrompt } from "./src/utils/ai";
 import { ContentType, generateMarketingContent, generateWorkedExamples, WorkedExampleContent } from "./src/utils/marketing";
 import { getJsArray } from "./src/utils/parse";
 

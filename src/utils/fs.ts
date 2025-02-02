@@ -14,6 +14,7 @@ interface PromptsConfig {
     examPrepTips: string;
     motivation: string;
   }
+  correctness: string;
 }
 
 interface SyllabusConfig {

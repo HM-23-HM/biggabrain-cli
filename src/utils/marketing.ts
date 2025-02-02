@@ -5,7 +5,7 @@ import * as path from "path";
 import * as puppeteer from "puppeteer";
 import * as util from "util";
 import { v4 as uuidv4 } from "uuid";
-import { Qans } from "./chain";
+import { Qans } from "./ai";
 import {
   extractQuestionAndSolution,
   wrapTextOutsideTex,

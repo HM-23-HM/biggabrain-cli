@@ -161,7 +161,7 @@ export const sendOllamaPrompt = async (prompt: string) => {
 export const verifyQans = async (qans: string[]) => {
   const formattedQans = formatObjQuestions(qans);
   const response = await sendOllamaPrompt(
-    `Instructions:\n${promptsConfig.correctness}\nQuestions\n${formattedQans}\nEditing notes:\n${promptsConfig.editingNotes}`
+    `Instructions:\n${promptsConfig.correctness}\nQuestions\n${formattedQans}\n`
   );
   return removeThinkTags(response);
 };

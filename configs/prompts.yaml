@@ -164,13 +164,8 @@ expandSolution: |
 correctness: |
   Review each object for the accuracy of the answer to the question. 
   Then, review each object for consistency between the answer and the solution in substance not style. 
-  If the answer is correct and consistent with the solution, then return the object as is. 
-  If there are errors or inconsistencies between the answer and the solution, return only the corrected objects with the relevant fields updated. 
-  Include all fields (question, answer, solution, notes, and section) for the corrected objects, even if they are unchanged.
-  Do not omit, alter, or summarize any field unless explicitly instructed to do so.
-  I don't want to see any corrections midway through the solutions or notes (like `Oops! I made a mistake earlier.`). Just give me the correct response. 
-  Do not explain the errors or provide extra information, just update the answer or solution field(s) in the returned objects.
+  If the answer is correct and consistent with the solution, then return the question prepended by the ✅ emoji. 
+  If there are errors or inconsistencies between the answer and the solution, return question prepended by the ❌ emoji and the corrections in "corrections" in a JSON object. 
   Spend no more than 1 minute thinking about each question.
-  If you make any changes, please abide by the editing notes.
 
   Here are the questions:

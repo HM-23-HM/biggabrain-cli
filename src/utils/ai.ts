@@ -165,3 +165,11 @@ export const verifyQans = async (qans: string[]) => {
   );
   return removeThinkTags(response);
 };
+
+export const updateToDisplayMode = async (qans: string[]) => {
+  const formattedQans = formatObjQuestions(qans);
+  return sendPrompt(
+    `Questions\n${formattedQans}\nInstructions:\n${promptsConfig.displayMode}\nEditing notes:\n${promptsConfig.editingNotes}`
+  );
+};
+

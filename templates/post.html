@@ -13,29 +13,30 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      /* Set fixed dimensions for 9:16 aspect ratio */
+      width: 810px;  /* 9 units */
+      height: 1440px; /* 16 units */
     }
     .container {
+      max-width: 90%; /* Limit width to 90% of the viewport */
       text-align: center;
+      word-wrap: break-word; /* Allow long words to break */
+      overflow-wrap: break-word; /* Modern alternative */
     }
     .quote {
-      font-style: italic;
-      color: #555;
+      color: #030301;
+      font-size: 48px;
+      margin-left: 10px;
+      margin-right: 10px;
     }
     .logo {
-        padding-top: 10px;
+      padding-top: 10px;
+      max-width: 80%; /* Ensure logo doesn't overflow container */
+      height: auto;
     }
   </style>
 </head>
 <body>
-    <style>
-      .quote {
-        color: #030301;
-        font-size: 30px;
-        margin-left: 10px;
-        margin-right: 10px;
-      }
-    </style>
   <div class="container">
     <img src="{{logoPath}}" alt="Bigga Brain Logo" class="logo">
     <p class="quote">{{quote}}</p>

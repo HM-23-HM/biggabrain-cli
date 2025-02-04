@@ -1,5 +1,5 @@
 import { Qans } from "./ai";
-import { WorkedExampleContent } from "./marketing";
+import { parseKatex, WorkedExampleContent } from "./marketing";
 import fs from "fs";
 
 export function parseJsonString(input: string) {
@@ -144,7 +144,7 @@ export function extractQuestionAndSolution(obj: Qans & { questionId: string }): 
   
   // Add the question as the first string
   if (obj.question) {
-    result.push({ content: obj.question.trim(), questionId: obj.questionId });
+    result.push({ content: `<p>${obj.question.trim()}</p>`, questionId: obj.questionId });
   }
   
   // Extract steps from the solution
@@ -172,7 +172,7 @@ export function wrapTexContentWith(input: string, type: "large" | "small" | "hug
   });
 }
 
-export function wrapTextWith(input: string, type: "large" | "small" | "huge" = "huge"): string {
+export function wrapTextWith(input: string, type: "large" | "small" | "huge" = "small"): string {
   // Match all \text{...} tags and wrap them with \small{}
   return input.replace(/\\text\{(.*?)\}/g, (match, content) => `\\${type}{\\text{${content}}}`);
 }
@@ -351,3 +351,43 @@ export function removeThinkTags(input: string): string {
   return input.replace(/<think>[\s\S]*?<\/think>/g, '');
 }
 
+const formatKatex = (html: string) => {
+  return wrapTextWith(wrapTEXWith((html)));
+};
+
+export function formatHtml(html: string): string {
+  return styleHtmlWithTailwind(parseKatex(formatKatex(html)))
+}
+
+export function wrapTEXWith(input: string, size: 'small' | 'large' | 'huge' = 'large'): string {
+  return input.replace(/\[tex\](.*?)\[\/tex\]/g, (match, content) => {
+    return `[tex]\\${size}{${content}}[/tex]`;
+  });
+}
+
+export function styleHtmlWithTailwind(html: string) {
+  // Add Tailwind classes to HTML elements
+  
+  const pLiShared = 'text-4xl mx-auto';
+  const listShared = 'list-inside mb-4 pl-20';
+  const allShared = 'font-playfair text-[#F3F4F7] tracking-[0.5px] space-x-[2px] leading-[1.6]';
+  
+  const styledHtml = html
+    .replace(/<h3>/g, `<h3 class="${allShared} text-5xl mb-8 font-semibold">`)
+    .replace(/<h4>/g, `<h4 class="${allShared} text-2xl font-semibold mt-6 mb-3 text-blue-600">`)
+    .replace(/<p>/g, `<p class="${pLiShared} ${allShared}">`)
+    .replace(/<ul>/g, `<ul class="list-disc ${listShared} ${allShared}">`) // Indented list with bullets
+    .replace(/<ol>/g, `<ol class="list-decimal ${listShared} ${allShared}">`) // Indented list with numbers
+    .replace(/<li>/g, `<li class="${pLiShared} ${allShared}">`)
+    .replace(/<strong>/g, '<strong class="font-bold text-gray-900">')
+    .replace(/<em>/g, '<em class="italic text-gray-800">')
+    .replace(/<mark>/g, '<mark class="bg-yellow-200 px-1 rounded">')
+    .replace(/<code>/g, '<code class="bg-gray-100 px-2 py-1 rounded font-mono text-sm">')
+    .replace(/<a /g, '<a class="text-blue-600 hover:underline" ');
+
+  return styledHtml;
+}
+
+export function parseHtml(html: string) {
+  return html
+}

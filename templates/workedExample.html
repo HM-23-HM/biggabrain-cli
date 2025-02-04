@@ -1,12 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bigga Brain Template</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'playfair': ['"Playfair Display"', 'serif'],
+          },
+        },
+      },
+    }
+  </script>
   <style>
     body {
       margin: 0;
@@ -16,8 +29,8 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 1080px;
-      width: 1350px;
+      width: 810px;  /* 9 units */
+      height: 1440px; /* 16 units */
     }
     .container {
       max-width: 90%; /* Limit width to 90% of the viewport */
@@ -25,24 +38,7 @@
       word-wrap: break-word; /* Allow long words to break */
       overflow-wrap: break-word; /* Modern alternative */
     }
-    .quote {
-      color: #F3F4F7;
-      letter-spacing: 0.5px;
-      word-spacing: 2px;
-    }
-    h3 {
-      font-size: 36px;
-      color: #F3F4F7;
-    }
-    p, li {
-      font-size: 24px;
-      color: #F3F4F7;
-      line-height: 1.6; /* Increase line spacing for better readability */
-      margin: 0 auto; /* Center text horizontally */
-    }
-    ol {
-      padding-left: 20px; /* Indent ordered list items */
-    }
+
     .top-right {
       position: absolute;
       top: 5px;
@@ -58,7 +54,7 @@
 </head>
 <body>
   <div class="container">
-    <p class="quote" id="katex-container">{{{quote}}}</p>
+    <p id="katex-container">{{{quote}}}</p>
   </div>
 </body>
 </html>

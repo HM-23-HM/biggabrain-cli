@@ -8,9 +8,10 @@ import { v4 as uuidv4 } from "uuid";
 import { Qans } from "./ai";
 import {
   extractQuestionAndSolution,
+  formatHtml,
+  wrapTexContentWith,
   wrapTextOutsideTex,
-  wrapTextWith,
-  wrapTexContentWith
+  wrapTextWith
 } from "./parse";
 
 export type ContentType =
@@ -27,8 +28,8 @@ export type MultipleChoice = {
 };
 
 const contentTemplateMap: Record<ContentType, string> = {
-  "Motivational Quote": "quote",
-  "Exam Tips": "quote",
+  "Motivational Quote": "post",
+  "Exam Tips": "post",
   "Worked Example": "workedExample",
   Quizzes: "quiz",
 };
@@ -134,19 +135,36 @@ export const generateMarketingContent = async (sourceMaterial: {
 };
 
 export function parseKatex(source: string): string {
-  return source.replace(/\[tex\](.*?)\[\/tex\]/g, (match, p1) => {
+  // Handle inline math
+  source = source.replace(/\[tex\](.*?)\[\/tex\]/g, (match, p1) => {
     try {
       return katex.renderToString(p1, {
         throwOnError: false,
-        displayMode: true,
-        maxSize: 2,
-        minRuleThickness: 0.05
+        displayMode: false
       });
     } catch (error) {
-      console.error("KaTeX rendering error:", error);
+      console.error('KaTeX rendering error:', error);
       return match;
     }
   });
+  
+  // Handle display math - replace equation with equation*
+  source = source.replace(/\[texd\](.*?)\[\/texd\]/g, (match, p1) => {
+    try {
+      // Replace 'equation' with 'equation*' to remove numbering
+      const content = p1.replace(/\\begin{equation}/g, '\\begin{equation*}')
+                       .replace(/\\end{equation}/g, '\\end{equation*}');
+      return katex.renderToString(content, {
+        throwOnError: false,
+        displayMode: true
+      });
+    } catch (error) {
+      console.error('KaTeX rendering error:', error);
+      return match;
+    }
+  });
+  
+  return source;
 }
 
 export function getRandomLetter() {
@@ -179,7 +197,7 @@ export function generateWorkedExamples(): WorkedExampleContent[] {
   });
   const formatted = parsed.map((item) => ({
     questionId: item.questionId,
-    content: formatContent(item.content),
+    content: formatHtml(item.content),
   }));
   return formatted;
 }

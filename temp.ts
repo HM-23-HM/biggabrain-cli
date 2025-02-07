@@ -1,11 +1,11 @@
 import { readFileSync } from 'fs';
 import path from 'path';
-import { updateToDisplayMode } from './src/utils/ai';
+import { addH3Sections } from './src/utils/ai';
 import { processInBatches } from './src/utils';
 import { appendToFile } from './src/utils/fs';
 import { parseJsonString } from './src/utils/parse';
 
-async function processQuestionsToDisplayMode() {
+async function processQuestionsToH3Sections() {
     try {
         // Read the questions file
         const questionsPath = path.join('inbound', 'questions', 'index.json');
@@ -28,7 +28,7 @@ async function processQuestionsToDisplayMode() {
         const updatedQuestions = await processInBatches(
             questions,
             batchSize,
-            updateToDisplayMode
+            addH3Sections
         );
 
         // Parse and append each result
@@ -50,4 +50,4 @@ async function processQuestionsToDisplayMode() {
 }
 
 // Execute the function
-processQuestionsToDisplayMode();
+processQuestionsToH3Sections();

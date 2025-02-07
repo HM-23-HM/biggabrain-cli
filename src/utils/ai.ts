@@ -128,12 +128,6 @@ export const expandSolutions = async (qans: string[]) => {
 };
 
 export const sendOllamaPrompt = async (prompt: string) => {
-  // const message =  { role: "user", content: prompt };
-  // const response = await ollama.chat({
-  //   model: 'deepseek-r1:1.5b',
-  //   messages: [message],
-  // })
-  // return response.message.content;
   const response = await axios.post(
     "http://127.0.0.1:11434/api/generate",
     {
@@ -166,10 +160,10 @@ export const verifyQans = async (qans: string[]) => {
   return removeThinkTags(response);
 };
 
-export const updateToDisplayMode = async (qans: string[]) => {
+export const addH3Sections = async (qans: string[]) => {
   const formattedQans = formatObjQuestions(qans);
   return sendPrompt(
-    `Questions\n${formattedQans}\nInstructions:\n${promptsConfig.displayMode}\nEditing notes:\n${promptsConfig.editingNotes}`
+    `Instructions:\n${promptsConfig.h3Solutions}\nQuestions\n${formattedQans}\n\nEditing notes:\n${promptsConfig.editingNotes}`
   );
 };
 

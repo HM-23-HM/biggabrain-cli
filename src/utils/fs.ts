@@ -15,7 +15,6 @@ interface PromptsConfig {
     motivation: string;
   }
   correctness: string;
-  displayMode: string;
 }
 
 interface SyllabusConfig {

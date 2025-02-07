@@ -368,7 +368,7 @@ export function wrapTEXWith(input: string, size: 'small' | 'large' | 'huge' = 'l
 export function styleHtmlWithTailwind(html: string) {
   // Add Tailwind classes to HTML elements
   
-  const pLiShared = 'text-4xl mx-auto';
+  const pLiShared = 'text-4xl mx-auto my-8';
   const listShared = 'list-inside mb-4 pl-20';
   const allShared = 'font-playfair text-[#F3F4F7] tracking-[0.5px] space-x-[2px] leading-[1.6]';
   

@@ -31,6 +31,7 @@ editingNotes: |
   - Ensure that the answer is correct and matches the solution provided.
   - For money within katex, use \\$ instead of $. Outside of katex, use $ for money.
   - For vectors, use \overrightarrow instead of \vec.
+  - For common exponents, use '\\text{ cm}^2' instead of 'square centimeters'
   
   1. Write for a grade-6 reading level.
   
@@ -180,31 +181,3 @@ correctness: |
   Spend no more than 1 minute thinking about each question.
 
   Here are the questions:
-displayMode: |
-  Please modify the math expressions in these questions according to these rules:
-
-  1. For any multi-line equations or equations that should be displayed on their own line:
-    - Replace [tex] with [texd]
-    - Wrap the equation in \begin{equation} and \end{equation}
-    - For equations with multiple lines:
-      - Add \\begin{split} and \\end{split} inside the equation environment
-      - Place & before = signs to align them
-      - Use \\ for line breaks
-
-  2. Keep inline equations (within text) using [tex] without any additional environments.
-
-  3. Examples:
-    Single line display equation:
-    [texd]\\begin{equation} x + y = 5 \\end{equation}[/texd]
-
-    Multi-line display equation:
-    [texd]\\begin{equation} \\begin{split}
-    x + y &= 5 \\
-    y &= 5 - x
-    \\end{split} \\end{equation}[/texd]
-
-    Inline equation:
-    The value of [tex]x[/tex] is 5.
-
-  Please maintain all other formatting and content exactly as is.
-  If a "section" property, for example, `"section": 9` is present, return it as is

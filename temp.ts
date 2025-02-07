@@ -1,9 +1,10 @@
 import { readFileSync } from 'fs';
 import path from 'path';
-import { addH3Sections } from './src/utils/ai';
+import { performTempAction } from './src/utils/ai';
 import { processInBatches } from './src/utils';
 import { appendToFile } from './src/utils/fs';
 import { parseJsonString } from './src/utils/parse';
+import { countObjects } from './src/utils';
 
 async function processQuestionsToH3Sections() {
     try {
@@ -28,7 +29,7 @@ async function processQuestionsToH3Sections() {
         const updatedQuestions = await processInBatches(
             questions,
             batchSize,
-            addH3Sections
+            performTempAction
         );
 
         // Parse and append each result
@@ -49,5 +50,16 @@ async function processQuestionsToH3Sections() {
     }
 }
 
+function countQuestionsInFile() {
+  try {
+    const questionsPath = path.join('inbound', 'questions', 'index.json');
+    const fileContents = readFileSync(questionsPath, 'utf-8');
+    const count = countObjects(fileContents);
+    console.log(`Found ${count} questions in index.json`);
+  } catch (error) {
+    console.error('Error reading questions file:', error);
+  }
+}
+
 // Execute the function
-processQuestionsToH3Sections();
+countQuestionsInFile();

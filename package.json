@@ -32,7 +32,6 @@
     "handlebars": "^4.7.8",
     "js-yaml": "^4.1.0",
     "katex": "^0.16.19",
-    "ollama": "^0.5.12",
     "pdf-poppler": "^0.2.1",
     "puppeteer": "^23.11.1"
   }

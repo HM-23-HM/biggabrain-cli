@@ -4,7 +4,6 @@ import fs from "fs";
 import { appendToFile, promptsConfig, syllabusConfig } from "./fs";
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY as string);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-import ollama, { Ollama } from "ollama";
 import axios from "axios";
 import { removeThinkTags } from "./parse";
 
@@ -139,7 +138,7 @@ export const sendOllamaPrompt = async (prompt: string) => {
       timeout: 1200000,
       headers: {
         "Content-Type": "application/json",
-        "Connection": "keep-alive",
+        Connection: "keep-alive",
       },
     }
   );
@@ -160,10 +159,6 @@ export const verifyQans = async (qans: string[]) => {
   return removeThinkTags(response);
 };
 
-export const addH3Sections = async (qans: string[]) => {
-  const formattedQans = formatObjQuestions(qans);
-  return sendPrompt(
-    `Instructions:\n${promptsConfig.h3Solutions}\nQuestions\n${formattedQans}\n\nEditing notes:\n${promptsConfig.editingNotes}`
-  );
+export const performTempAction = async (qans: string[]) => {
+  return "";
 };
-

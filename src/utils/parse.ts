@@ -391,3 +391,30 @@ export function styleHtmlWithTailwind(html: string) {
 export function parseHtml(html: string) {
   return html
 }
+
+/**
+ * For parsing objectives from a text file (generate objectives)
+ * @param fileContent 
+ * @returns 
+ */
+export function processJsonText(fileContent: string): string {
+  // 1. Remove lines starting with ```
+  const withoutBackticks = fileContent
+    .split('\n')
+    .filter(line => !line.trim().startsWith('```'))
+    .join('\n');
+
+  // 2. Remove all square brackets at the start/end of arrays
+  const withoutBrackets = withoutBackticks.replace(/^\s*\[|\]\s*$/gm, '');
+
+  // 3. Split into objects and recombine with proper formatting
+  const objects = withoutBrackets
+    .split(/\n\s*}\s*,?\s*\n\s*{/)  // Split between objects
+    .map(obj => obj.trim())  // Trim whitespace
+    .filter(obj => obj.length > 0)  // Remove empty strings
+    .map(obj => obj.startsWith('{') ? obj : `{${obj}`)  // Ensure starts with {
+    .map(obj => obj.endsWith('}') ? obj : `${obj}}`);   // Ensure ends with }
+
+  // Combine objects with commas and wrap in square brackets
+  return `[\n  ${objects.join(',\n  ')}\n]`;
+}

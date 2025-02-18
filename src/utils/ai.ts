@@ -56,10 +56,12 @@ export const sendPrompt = async (
     `Failed to generate content after ${maxRetries} attempts due to rate limiting or service unavailability.`
   );
 };
-export const getQuestionFromImage = async (imagePath: string) => {
+export const extractContentFromImage = async (
+  imagePath: string, 
+  prompt: string
+) => {
   const image = fs.readFileSync(imagePath).toString("base64");
-
-  const content = await sendPrompt(promptsConfig.imageToText, 10, 3, {
+  const content = await sendPrompt(prompt, 10, 3, {
     inlineData: { data: image, mimeType: "image/png" },
   });
   appendToFile("imageToText.txt", content);
@@ -80,7 +82,7 @@ export const generateQansWorkload = async (questions: MessageContent[]) => {
   appendToFile("formattedQuestions.txt", formattedQuestions);
   console.log("formattedQuestions saved to file");
 
-  const qansPrompt = `${formattedQuestions}\n${promptsConfig.generateQans}\n${promptsConfig.editingNotes}`;
+  const qansPrompt = `${formattedQuestions}\n${promptsConfig.generateQans}\n${promptsConfig.editingNotes}\n${promptsConfig.editingNotesQans}`;
 
   const response = await sendPrompt(qansPrompt);
   appendToFile("qansResponse.txt", response);
@@ -122,7 +124,7 @@ export const doubleCheckQans = async (qans: string[]) => {
 export const expandSolutions = async (qans: string[]) => {
   const formattedQans = formatStringQuestions(qans);
   return sendPrompt(
-    `Questions\n${formattedQans}\nInstructions:\n${promptsConfig.expandSolution}\n\Editing notes:\n${promptsConfig.editingNotes}`
+    `Questions\n${formattedQans}\nInstructions:\n${promptsConfig.expandSolution}\n\Editing notes:\n${promptsConfig.editingNotes}\n${promptsConfig.editingNotesQans}`
   );
 };
 

@@ -185,7 +185,7 @@ editingNotes: |
   - For vectors, use \overrightarrow instead of \vec.
   - For common exponents, use '\\text{ cm}^2' instead of 'square centimeters'
   
-  - Write for a grade-6 reading level.
+  - Write for a grade-8 reading level. Don't sound like you're speaking to children. Get straight to the point in a conversational tone.
   
   - Make the tone conversational. For example:
       - "In step 2, we use the distributive property because..."
@@ -203,4 +203,13 @@ editingNotes: |
       - Fractions should be written as `\\frac{a}{b}`
   
   - Round all decimals to 2 decimal places and indicate the same.
-  
+editingNotesGuidesLesson: |
+  - The keys in the returned JSON object should be:
+    {
+      objectiveIndex: number,
+      pageIndex: number,
+      type: "lesson"
+      body: string
+    }
+  - Each page should be about 100 words.
+

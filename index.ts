@@ -1,5 +1,5 @@
 import { MessageContent } from "@langchain/core/messages";
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import * as path from "path";
 import { processInBatches } from "./src/utils";
 import {
@@ -8,43 +8,54 @@ import {
   expandSolutions,
   formatObjQuestions,
   generateQansWorkload,
-  getQuestionFromImage,
+  extractContentFromImage,
   getUnansweredQues,
 } from "./src/utils/ai";
 import { moveFiles } from "./src/utils/cleanup";
 import { convertPdfToPng } from "./src/utils/conversion";
-import { appendToFile, getFilenames } from "./src/utils/fs";
+import { appendToFile, getFilenames, promptsConfig } from "./src/utils/fs";
 import {
+  processJsonText,
   processQuestionFile,
-  stripLLMOutputMarkers
+  stripLLMOutputMarkers,
 } from "./src/utils/parse";
 import { fixExcessiveBackslashes } from "./src/utils/validation";
-import { Command } from 'commander';
+import { Command } from "commander";
 
 const inboundDir = path.join(__dirname, "inbound");
 const stagingDir = path.join(__dirname, "staging");
 
+const processDocuments = async (promptType: keyof typeof promptsConfig) => {
+  // Step 1 - Read all files in the inbound directory
+  const pdfFiles = getFilenames("inbound", "pdf");
+
+  // Step 2 - Convert pdf to images
+  for (const file of pdfFiles) {
+    const filePath = path.join(inboundDir, file);
+    await convertPdfToPng(filePath);
+    console.log(`Converted ${file} to PNG`);
+  }
+
+  // Step 3 - Process images
+  const imageFiles = getFilenames("staging", "png");
+
+  const content = [];
+  for (const file of imageFiles) {
+    const filePath = path.join(stagingDir, file.replace(".pdf", ".png"));
+    const extracted = await extractContentFromImage(
+      filePath,
+      promptsConfig[promptType] as string
+    );
+    content.push(extracted);
+  }
+
+  console.log("Extracted content saved to file");
+  return content;
+};
+
 const primary = async () => {
   try {
-    // Step 1 - Read all files in the inbound directory
-    const pdfFiles = getFilenames("inbound", "pdf");
-
-    // Step 2 - Convert pdf to images
-    for (const file of pdfFiles) {
-      const filePath = path.join(inboundDir, file);
-      await convertPdfToPng(filePath);
-      console.log(`Converted ${file} to PNG`);
-    }
-
-    // Step 3 - Process images to generate questions
-    const imageFiles = getFilenames("staging", "png");
-
-    const questions = [];
-    for (const file of imageFiles) {
-      const filePath = path.join(stagingDir, file.replace(".pdf", ".png"));
-      const question = await getQuestionFromImage(filePath);
-      questions.push(question);
-    }
+    const questions = await processDocuments("extractObjectives");
 
     console.log("questions saved to file");
 
@@ -112,8 +123,6 @@ const primary = async () => {
     });
 
     console.log("Classification complete.");
-
-    
   } catch (err) {
     console.error("Error in main function:", err);
   } finally {
@@ -142,46 +151,68 @@ const secondary = async () => {
   });
 
   console.log("Solutions appended to file.");
-}
+};
+
+const generateObjectives = async () => {
+  await processDocuments("extractObjectives");
+  console.log("Objectives extracted");
+
+  const fileContent = readFileSync("saved/imageToText.txt", "utf-8");
+
+  const processedContent = processJsonText(fileContent);
+  appendToFile("objectives.json", processedContent, "outbound");
+
+  console.log("Files saved successfully as objectives.json");
+};
 
 const main = async () => {
   program
-    .name('math-processor')
-    .description('CLI to process math questions')
-    .version('1.0.0');
+    .name("math-processor")
+    .description("CLI to process math questions")
+    .version("1.0.0");
 
   // Add default command
+  program.action(async () => {
+    try {
+      await primary();
+    } catch (error) {
+      console.error("Error in default command:", error);
+      process.exit(1);
+    }
+  });
+
   program
+    .command("primary")
+    .description("Run primary processing of questions")
     .action(async () => {
       try {
         await primary();
       } catch (error) {
-        console.error('Error in default command:', error);
-        process.exit(1);
-      }
-    });
-
-  // Keep existing command definitions
-  program
-    .command('primary')
-    .description('Run primary processing of questions')
-    .action(async () => {
-      try {
-        await primary();
-      } catch (error) {
-        console.error('Error in primary command:', error);
+        console.error("Error in primary command:", error);
         process.exit(1);
       }
     });
 
   program
-    .command('secondary')
-    .description('Run secondary processing of expanded solutions')
+    .command("secondary")
+    .description("Run secondary processing of expanded solutions")
     .action(async () => {
       try {
         await secondary();
       } catch (error) {
-        console.error('Error in secondary command:', error);
+        console.error("Error in secondary command:", error);
+        process.exit(1);
+      }
+    });
+
+  program
+    .command("generateObjectives")
+    .description("Generate objectives from images")
+    .action(async () => {
+      try {
+        await generateObjectives();
+      } catch (error) {
+        console.error("Error in generateObjectives command:", error);
         process.exit(1);
       }
     });

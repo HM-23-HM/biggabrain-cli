@@ -188,7 +188,7 @@ const formatContent = (content: string) => {
 export type WorkedExampleContent = { questionId: string; content: string };
 
 export function generateWorkedExamples(): WorkedExampleContent[] {
-  const questionsPath = path.join("inbound", "questions", "index.json");
+  const questionsPath = path.join("inbound", "questions", "worked.jsonc");
   const file = fs.readFileSync(questionsPath, "utf-8");
   const parsed: { content: string; questionId: string }[] = [];
   const questions = (JSON.parse(file) as Qans[]).map(addquestionId);

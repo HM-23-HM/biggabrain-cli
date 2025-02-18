@@ -3,7 +3,7 @@ import { MessageContent } from "@langchain/core/messages";
 import fs from "fs";
 import { appendToFile, promptsConfig, syllabusConfig } from "./fs";
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY as string);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 import axios from "axios";
 import { removeThinkTags } from "./parse";
 

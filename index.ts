@@ -1,5 +1,7 @@
 import { MessageContent } from "@langchain/core/messages";
+import { readFileSync } from "fs";
 import * as path from "path";
+import { processInBatches } from "./src/utils";
 import {
   classifyQuestions,
   doubleCheckQans,
@@ -9,19 +11,14 @@ import {
   getQuestionFromImage,
   getUnansweredQues,
 } from "./src/utils/ai";
-import { convertPdfToPng } from "./src/utils/conversion";
-import { appendToFile, appendToJsonFile, getFilenames } from "./src/utils/fs";
-import {
-  extractAndSaveJsonStrings,
-  extractValidJsonStringsFromFile,
-  parseOrReturnString,
-  processQuestionFile,
-  stripLLMOutputMarkers,
-} from "./src/utils/parse";
 import { moveFiles } from "./src/utils/cleanup";
+import { convertPdfToPng } from "./src/utils/conversion";
+import { appendToFile, getFilenames } from "./src/utils/fs";
+import {
+  processQuestionFile,
+  stripLLMOutputMarkers
+} from "./src/utils/parse";
 import { fixExcessiveBackslashes } from "./src/utils/validation";
-import { readFileSync } from "fs";
-import { processInBatches } from "./src/utils";
 
 const inboundDir = path.join(__dirname, "inbound");
 const stagingDir = path.join(__dirname, "staging");
@@ -162,5 +159,7 @@ switch (args[0]) {
     console.log("Invalid argument");
 }
 };
+
+
 
 main();

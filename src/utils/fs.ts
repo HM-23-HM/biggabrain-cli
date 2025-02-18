@@ -15,6 +15,9 @@ interface PromptsConfig {
     motivation: string;
   }
   correctness: string;
+  extractObjectives: string;
+  generateLessons: string;
+  generatePractice: string;
 }
 
 interface SyllabusConfig {

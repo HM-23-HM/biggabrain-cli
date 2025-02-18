@@ -17,53 +17,18 @@ generateQans: |
   - Are there any common misconceptions or pitfalls students should be aware of when answering this type of question? (e.g., order of operations, incorrect application of formulas, sign errors)
 
   - Also abide by the following editing notes
-editingNotes: |
-  - Escape \ in KaTeX syntax to prevent errors in JSON. For example, [tex]\frac{31}{10}[/tex] should become [tex]\\frac{31}{10}[/tex]
-  
-  - For equations that should be displayed on their own line, use [texd] instead of [tex] and wrap in equation environments:
-    - Single line: [texd]\\begin{equation*} x + y = 5 \\end{equation*}[/texd]
-    - Multiple lines: [texd]\\begin{equation*} \\begin{split} x + y &= 5 \\ y &= 5 - x \\end{split} \\end{equation*}[/texd]
-    - Use & before = signs to align equations
-    - Use \\ for line breaks in multi-line equations
-  
-  - Keep inline equations (within text) using [tex] without environments
-  - If a "section" property, for example, `"section": 9` is present, return it as is
-  - Ensure that the answer is correct and matches the solution provided.
-  - For money within katex, use \\$ instead of $. Outside of katex, use $ for money.
-  - For vectors, use \overrightarrow instead of \vec.
-  - For common exponents, use '\\text{ cm}^2' instead of 'square centimeters'
-  
-  1. Write for a grade-6 reading level.
-  
-  2. Make the tone conversational. For example:
-      - "In step 2, we use the distributive property because..."
-      - "The reason we use the Pythagorean theorem here is because..."
-  
-  3. All answers must be of type 'string'.
-  
-  4. All values must be in valid HTML syntax.
-  
-  5. For all mathematical steps (including in the new question, answer, solution, and notes), follow these instructions:
-      - Use a separate line for each mathematical step.
-      - Enclose inline math in [tex] tags and display math in [texd] tags
-      - Use valid KaTeX notation for all expressions
-      - Use proper equation environments for display math
-      - If you need to write an exponent, use KaTeX's `^` for exponents
-      - Fractions should be written as `\\frac{a}{b}`
-  
-  6. Round all decimals to 2 decimal places and indicate the same.
-  
-  7. Present your response in a JSON object with the following keys:
+editingNotesQans: |
+  - Present your response in a JSON object with the following keys:
       - `question` (string): The new question.
       - `answer` (string): The single answer to the question (no explanation needed).
       - `solution` (string): The step-by-step working that demonstrates how you arrived at the answer.
       - `notes` (string): Include helpful information for students in preparing for similar questions.
   
-  8. For the notes section, follow these rules:
+  - For the notes section, follow these rules:
       - Ensure all sections are numbered in ordered lists
       - Convert all mathematical expressions to valid KaTeX with appropriate inline/display mode
   
-  9. For the `solutions` and `notes` sections:
+  - For the `solutions` and `notes` sections:
       - Avoid using section headers like `<h3>Solution</h3>` or `<h3>Notes</h3>`
       - Follow HTML guidelines for formatting
       - Ensure consistent formatting across sections
@@ -189,16 +154,53 @@ extractObjectives: |
   The output should look like:
   [
     {
+    'objectiveIndex': 1,
     'objective': 'simplify algebraic fractions',
     'explanatory': 'The four basic operation on algebraic fractions'
     },
     {
+    'objectiveIndex': 2,
     'objective': 'use the laws of indices to manipulate expressions with integral indices',
     'explanatory': 'For m ∈ Z, n ∈ Z:\n(i) x^m \\times x^n = x^{m+n}\n(ii) \\frac{x^m}{x^n} = x^{m-n}\n(iii) (x^m)^n = x^{mn}\n(iv) x^{-n} = \\frac{1}{x^n}'
     }
   ]
   Please maintain the numbering from the source and ensure all mathematical expressions 
   are properly escaped for JSON strings. If an objective has no explanatory note, 
-  or vice versa, include an empty string for that field.
+  or vice versa, include an empty string for that field. Start the numbering from 1.
 generateLessons: |
 generatePractice: |
+editingNotes: |
+  - Escape \ in KaTeX syntax to prevent errors in JSON. For example, [tex]\frac{31}{10}[/tex] should become [tex]\\frac{31}{10}[/tex]
+  
+  - For equations that should be displayed on their own line, use [texd] instead of [tex] and wrap in equation environments:
+    - Single line: [texd]\\begin{equation*} x + y = 5 \\end{equation*}[/texd]
+    - Multiple lines: [texd]\\begin{equation*} \\begin{split} x + y &= 5 \\ y &= 5 - x \\end{split} \\end{equation*}[/texd]
+    - Use & before = signs to align equations
+    - Use \\ for line breaks in multi-line equations
+  
+  - Keep inline equations (within text) using [tex] without environments
+  - If a "section" property, for example, `"section": 9` is present, return it as is
+  - Ensure that the answer is correct and matches the solution provided.
+  - For money within katex, use \\$ instead of $. Outside of katex, use $ for money.
+  - For vectors, use \overrightarrow instead of \vec.
+  - For common exponents, use '\\text{ cm}^2' instead of 'square centimeters'
+  
+  - Write for a grade-6 reading level.
+  
+  - Make the tone conversational. For example:
+      - "In step 2, we use the distributive property because..."
+      - "The reason we use the Pythagorean theorem here is because..."
+  
+  - All answers must be of type 'string'.
+  
+  - All values must be in valid HTML syntax.
+  - For all mathematical steps (including in the new question, answer, solution, and notes if applicable), follow these instructions:
+      - Use a separate line for each mathematical step.
+      - Enclose inline math in [tex] tags and display math in [texd] tags
+      - Use valid KaTeX notation for all expressions
+      - Use proper equation environments for display math
+      - If you need to write an exponent, use KaTeX's `^` for exponents
+      - Fractions should be written as `\\frac{a}{b}`
+  
+  - Round all decimals to 2 decimal places and indicate the same.
+  

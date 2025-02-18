@@ -6,6 +6,7 @@ interface PromptsConfig {
   imageToText: string;
   expandSolution: string;
   generateQans: string;
+  editingNotesQans: string;
   editingNotes: string;
   classify: string;
   doubleCheck: string;

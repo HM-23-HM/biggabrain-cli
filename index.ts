@@ -19,6 +19,7 @@ import {
   stripLLMOutputMarkers
 } from "./src/utils/parse";
 import { fixExcessiveBackslashes } from "./src/utils/validation";
+import { Command } from 'commander';
 
 const inboundDir = path.join(__dirname, "inbound");
 const stagingDir = path.join(__dirname, "staging");
@@ -144,22 +145,49 @@ const secondary = async () => {
 }
 
 const main = async () => {
-// The first two elements are node path and script path
-const [,, ...args] = process.argv;
-console.log(args); // Array of arguments
+  program
+    .name('math-processor')
+    .description('CLI to process math questions')
+    .version('1.0.0');
 
-switch (args[0]) {
-  case "p":
-    primary();
-    break;
-  case "s":
-    secondary();
-    break;
-  default:
-    console.log("Invalid argument");
-}
+  // Add default command
+  program
+    .action(async () => {
+      try {
+        await primary();
+      } catch (error) {
+        console.error('Error in default command:', error);
+        process.exit(1);
+      }
+    });
+
+  // Keep existing command definitions
+  program
+    .command('primary')
+    .description('Run primary processing of questions')
+    .action(async () => {
+      try {
+        await primary();
+      } catch (error) {
+        console.error('Error in primary command:', error);
+        process.exit(1);
+      }
+    });
+
+  program
+    .command('secondary')
+    .description('Run secondary processing of expanded solutions')
+    .action(async () => {
+      try {
+        await secondary();
+      } catch (error) {
+        console.error('Error in secondary command:', error);
+        process.exit(1);
+      }
+    });
+
+  await program.parseAsync();
 };
 
-
-
+const program = new Command();
 main();

@@ -181,3 +181,24 @@ correctness: |
   Spend no more than 1 minute thinking about each question.
 
   Here are the questions:
+extractObjectives: |
+  Please analyze this syllabus page and create an array of objects, 
+  where each object represents a row with an objective and its corresponding explanatory note. 
+  Each object should have two keys: 'objective' and 'explanatory'. 
+  Convert all mathematical notation to KaTeX format and ensure proper JSON string escaping. 
+  The output should look like:
+  [
+    {
+    'objective': 'simplify algebraic fractions',
+    'explanatory': 'The four basic operation on algebraic fractions'
+    },
+    {
+    'objective': 'use the laws of indices to manipulate expressions with integral indices',
+    'explanatory': 'For m ∈ Z, n ∈ Z:\n(i) x^m \\times x^n = x^{m+n}\n(ii) \\frac{x^m}{x^n} = x^{m-n}\n(iii) (x^m)^n = x^{mn}\n(iv) x^{-n} = \\frac{1}{x^n}'
+    }
+  ]
+  Please maintain the numbering from the source and ensure all mathematical expressions 
+  are properly escaped for JSON strings. If an objective has no explanatory note, 
+  or vice versa, include an empty string for that field.
+generateLessons: |
+generatePractice: |

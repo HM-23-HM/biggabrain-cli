@@ -167,7 +167,11 @@ extractObjectives: |
   Please maintain the numbering from the source and ensure all mathematical expressions 
   are properly escaped for JSON strings. If an objective has no explanatory note, 
   or vice versa, include an empty string for that field. Start the numbering from 1.
-generateLessons: |
+generateLesson: |
+  Develop a lesson with the following objectives and ensure the following requirements are met:
+  - Abide by the following editing notes
+  - Provide simple examples after each concept is introduced to solidify understanding. These examples should also be in the body
+  - Split the lesson into pages where necessary
 generatePractice: |
 editingNotes: |
   - Escape \ in KaTeX syntax to prevent errors in JSON. For example, [tex]\frac{31}{10}[/tex] should become [tex]\\frac{31}{10}[/tex]
@@ -203,7 +207,7 @@ editingNotes: |
       - Fractions should be written as `\\frac{a}{b}`
   
   - Round all decimals to 2 decimal places and indicate the same.
-editingNotesGuidesLesson: |
+editingNotesLesson: |
   - The keys in the returned JSON object should be:
     {
       objectiveIndex: number,

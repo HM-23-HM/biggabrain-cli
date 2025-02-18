@@ -3,22 +3,24 @@ import * as fs from "fs";
 import * as yaml from "js-yaml";
 
 interface PromptsConfig {
-  imageToText: string;
-  expandSolution: string;
-  generateQans: string;
-  editingNotesQans: string;
-  editingNotes: string;
   classify: string;
+  correctness: string;
   doubleCheck: string;
+  editingNotes: string;
+  editingNotesLesson: string;
+  editingNotesQans: string;
+  expandSolution: string;
+  extractObjectives: string;
+  generateLesson: string;
+  generatePractice: string;
+  generateQans: string;
+  imageToText: string;
   marketing: {
     quizzes: string;
     examPrepTips: string;
     motivation: string;
   }
-  correctness: string;
-  extractObjectives: string;
-  generateLessons: string;
-  generatePractice: string;
+
 }
 
 interface SyllabusConfig {

@@ -10,12 +10,15 @@ import {
   generateQansWorkload,
   extractContentFromImage,
   getUnansweredQues,
+  generateLessonForObjective,
 } from "./src/utils/ai";
 import { moveFiles } from "./src/utils/cleanup";
 import { convertPdfToPng } from "./src/utils/conversion";
 import { appendToFile, getFilenames, promptsConfig } from "./src/utils/fs";
 import {
-  processJsonText,
+  getObjectsFromFile,
+  processJsonTextLessons,
+  processJsonTextObjectives,
   processQuestionFile,
   stripLLMOutputMarkers,
 } from "./src/utils/parse";
@@ -52,6 +55,31 @@ const processDocuments = async (promptType: keyof typeof promptsConfig) => {
   console.log("Extracted content saved to file");
   return content;
 };
+
+async function generateLessons() {
+  try {
+    // Read and parse objectives
+    const objectives: string[] = getObjectsFromFile('outbound/objectives.json');
+    
+    console.log(`Starting to generate lessons for ${objectives.length} objectives...`);
+
+    // Process each objective
+    for (const obj of objectives) {
+      
+      // Combine objective and explanatory notes for context
+      
+      const lesson = await generateLessonForObjective(obj);
+      
+      appendToFile('lessons.txt', lesson, 'outbound');
+      
+      console.log(`Completed lesson for objective`);
+    }
+
+    console.log('All lessons generated successfully!');
+  } catch (error) {
+    console.error('Error generating lessons:', error);
+  }
+}
 
 const primary = async () => {
   try {
@@ -153,16 +181,20 @@ const secondary = async () => {
   console.log("Solutions appended to file.");
 };
 
-const generateObjectives = async () => {
+const generateGuides = async () => {
   await processDocuments("extractObjectives");
   console.log("Objectives extracted");
 
   const fileContent = readFileSync("saved/imageToText.txt", "utf-8");
 
-  const processedContent = processJsonText(fileContent);
+  const processedContent = processJsonTextObjectives(fileContent);
   appendToFile("objectives.json", processedContent, "outbound");
 
   console.log("Files saved successfully as objectives.json");
+
+  await generateLessons();
+  const processedLessons = processJsonTextLessons(readFileSync('outbound/lessons.txt', 'utf-8'));
+  appendToFile("lessons.json", processedLessons, "outbound");
 };
 
 const main = async () => {
@@ -206,11 +238,11 @@ const main = async () => {
     });
 
   program
-    .command("generateObjectives")
-    .description("Generate objectives from images")
+    .command("generateGuides")
+    .description("Generate guides from objectives")
     .action(async () => {
       try {
-        await generateObjectives();
+        await generateGuides();
       } catch (error) {
         console.error("Error in generateObjectives command:", error);
         process.exit(1);

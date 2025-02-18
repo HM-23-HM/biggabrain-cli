@@ -397,7 +397,7 @@ export function parseHtml(html: string) {
  * @param fileContent 
  * @returns 
  */
-export function processJsonText(fileContent: string): string {
+export function processJsonTextObjectives(fileContent: string): string {
   // 1. Remove lines starting with ```
   const withoutBackticks = fileContent
     .split('\n')
@@ -418,3 +418,80 @@ export function processJsonText(fileContent: string): string {
   // Combine objects with commas and wrap in square brackets
   return `[\n  ${objects.join(',\n  ')}\n]`;
 }
+
+/** This function is used to return objects from a file that 
+ * throw an error when parsed by JSON.parse(). The result is
+ * an array of strings.
+ */
+export function getObjectsFromFile(filePath: string): string[] {
+  try {
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+
+    // Try parsing as JSON first
+    try {
+      const parsed = JSON.parse(fileContent);
+      if (Array.isArray(parsed)) {
+        // Convert each object back to a string with proper formatting
+        return parsed.map(obj => JSON.stringify(obj, null, 2));
+      }
+    } catch (parseError) {
+      // If JSON.parse fails, try regex approach
+      const objectRegex = /{[^{}]*}/g;
+      const matches = fileContent.match(objectRegex);
+      if (matches) {
+        return matches.map(obj => {
+          try {
+            // Try to parse and re-stringify to ensure valid JSON
+            return JSON.stringify(JSON.parse(obj), null, 2);
+          } catch {
+            // If parsing fails, return the original string
+            return obj;
+          }
+        });
+      }
+    }
+
+    // If no objects found, return empty array
+    return [];
+
+  } catch (error) {
+    console.error('Error reading file:', error);
+    return [];
+  }
+}
+
+export function processJsonTextLessons(fileContent: string): string {
+  // 1. Remove backtick lines and replace with commas
+  const withoutBackticks = fileContent
+    .split('\n')
+    .map(line => line.trim().startsWith('```') ? ',' : line)
+    .join('\n');
+
+  // 2. Remove outer square brackets and their newlines
+  const withoutBrackets = withoutBackticks
+    .replace(/^\s*\[\s*\n/m, '')    // Remove opening bracket and its newline
+    .replace(/\n\s*\]\s*$/m, '');   // Remove closing bracket and its newline
+
+  // 3. Split into objects and clean them up, being careful with LaTeX
+  const objects = withoutBrackets
+    .split(/(?<="})\s*(?={)/)  // Split only after object's closing quote+brace
+    .map(obj => obj.trim())
+    .filter(obj => obj.length > 0);
+
+  // 4. Clean up objects without modifying their content
+  const processedObjects = objects.map(obj => {
+    // Only clean up the outer structure
+    return obj
+      .replace(/^\s*{/, '{')
+      .replace(/}\s*$/, '}');
+  });
+
+  // 5. Join objects with commas and wrap in brackets
+  const result = `[\n  ${processedObjects.join(',\n  ')}\n]`
+    .replace(/,\s*,/g, ',')      // Remove double commas
+    .replace(/^\[\s*,/, '[')     // Remove leading comma
+    .replace(/,\s*\]$/, '\n]');  // Remove trailing comma
+
+  return result;
+}
+

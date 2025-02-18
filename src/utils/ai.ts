@@ -164,3 +164,9 @@ export const verifyQans = async (qans: string[]) => {
 export const performTempAction = async (qans: string[]) => {
   return "";
 };
+
+export const generateLessonForObjective = async (objective: string) => {
+  return sendPrompt(
+    `${promptsConfig.generateLesson}\n${objective}\n${promptsConfig.editingNotes}\n${promptsConfig.editingNotesLesson}`
+  );
+};

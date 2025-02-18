@@ -1,10 +1,9 @@
 import { readFileSync } from 'fs';
 import path from 'path';
+import { countObjects, processInBatches, saveInvalidJson, saveValidJson } from './src/utils';
 import { performTempAction } from './src/utils/ai';
-import { processInBatches } from './src/utils';
 import { appendToFile } from './src/utils/fs';
 import { parseJsonString } from './src/utils/parse';
-import { countObjects } from './src/utils';
 
 async function processQuestionsToH3Sections() {
     try {
@@ -61,5 +60,25 @@ function countQuestionsInFile() {
   }
 }
 
+function createValidJson() {
+  try {
+    const outputPath = 'valid.json';
+    saveValidJson(outputPath);
+  } catch (error) {
+    console.error('Error creating valid JSON:', error);
+  }
+}
+
+function createInvalidJson() {
+  try {
+    const outputPath = 'invalid.json';
+    saveInvalidJson(outputPath);
+  } catch (error) {
+    console.error('Error creating invalid JSON:', error);
+  }
+}
+
 // Execute the function
-countQuestionsInFile();
+// countQuestionsInFile();
+// createValidJson();
+createInvalidJson();

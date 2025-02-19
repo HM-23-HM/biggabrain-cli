@@ -351,7 +351,7 @@ export function removeThinkTags(input: string): string {
   return input.replace(/<think>[\s\S]*?<\/think>/g, '');
 }
 
-const formatKatex = (html: string) => {
+export const formatKatex = (html: string) => {
   return wrapTextWith(wrapTEXWith((html)));
 };
 

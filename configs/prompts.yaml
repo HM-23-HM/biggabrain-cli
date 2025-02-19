@@ -17,23 +17,6 @@ generateQans: |
   - Are there any common misconceptions or pitfalls students should be aware of when answering this type of question? (e.g., order of operations, incorrect application of formulas, sign errors)
 
   - Also abide by the following editing notes
-editingNotesQans: |
-  - Present your response in a JSON object with the following keys:
-      - `question` (string): The new question.
-      - `answer` (string): The single answer to the question (no explanation needed).
-      - `solution` (string): The step-by-step working that demonstrates how you arrived at the answer.
-      - `notes` (string): Include helpful information for students in preparing for similar questions.
-  
-  - For the notes section, follow these rules:
-      - Ensure all sections are numbered in ordered lists
-      - Convert all mathematical expressions to valid KaTeX with appropriate inline/display mode
-  
-  - For the `solutions` and `notes` sections:
-      - Avoid using section headers like `<h3>Solution</h3>` or `<h3>Notes</h3>`
-      - Follow HTML guidelines for formatting
-      - Ensure consistent formatting across sections
-      - Return response as valid JSON
-      - Don't use diagrams, images, tables, or graphs
 classify: |
   Analyze these questions, and classify them using the following sections.
   Add the key to each question in a new 'section' field with the number of the section.
@@ -172,31 +155,42 @@ generateLesson: |
   - Abide by the following editing notes
   - Provide simple examples after each concept is introduced to solidify understanding. These examples should also be in the body
   - Split the lesson into pages where necessary
+  - Break up the body on each page into sections. Each section should start with an <h4> tag. The example should be titled "Worked example"
 generatePractice: |
+  Analyze the objective above and then:
+
+  1. Create a question that is a good practice question for the objective.
+  2. Make sure your question doesn't include tables, graphs or diagrams of any kind.
+  3. Answer the following:
+  - What are the steps involved in solving this problem effectively? Demonstrate while solving the problem. Show all working. Do not skip any steps. I repeat, show *all* of your working.
+  - If applicable, explain the reasoning behind using a specific mathematical operation or formula in each step.
+  - Are there any common misconceptions or pitfalls students should be aware of when answering this type of question? (e.g., order of operations, incorrect application of formulas, sign errors)
+
+  - Also abide by the following editing notes
 editingNotes: |
   - Escape \ in KaTeX syntax to prevent errors in JSON. For example, [tex]\frac{31}{10}[/tex] should become [tex]\\frac{31}{10}[/tex]
-  
+
   - For equations that should be displayed on their own line, use [texd] instead of [tex] and wrap in equation environments:
     - Single line: [texd]\\begin{equation*} x + y = 5 \\end{equation*}[/texd]
     - Multiple lines: [texd]\\begin{equation*} \\begin{split} x + y &= 5 \\ y &= 5 - x \\end{split} \\end{equation*}[/texd]
     - Use & before = signs to align equations
     - Use \\ for line breaks in multi-line equations
-  
+
   - Keep inline equations (within text) using [tex] without environments
   - If a "section" property, for example, `"section": 9` is present, return it as is
   - Ensure that the answer is correct and matches the solution provided.
-  - For money within katex, use \\$ instead of $. Outside of katex, use $ for money.
+  - For money within [tex] or [texd] tags, use \\$ instead of $. Outside of [tex] or [texd] tags, use $ for money.
   - For vectors, use \overrightarrow instead of \vec.
   - For common exponents, use '\\text{ cm}^2' instead of 'square centimeters'
-  
+
   - Write for a grade-8 reading level. Don't sound like you're speaking to children. Get straight to the point in a conversational tone.
-  
+
   - Make the tone conversational. For example:
       - "In step 2, we use the distributive property because..."
       - "The reason we use the Pythagorean theorem here is because..."
-  
+
   - All answers must be of type 'string'.
-  
+
   - All values must be in valid HTML syntax.
   - For all mathematical steps (including in the new question, answer, solution, and notes if applicable), follow these instructions:
       - Use a separate line for each mathematical step.
@@ -205,8 +199,15 @@ editingNotes: |
       - Use proper equation environments for display math
       - If you need to write an exponent, use KaTeX's `^` for exponents
       - Fractions should be written as `\\frac{a}{b}`
-  
+
   - Round all decimals to 2 decimal places and indicate the same.
+
+  - For solutions:
+    - Each step should begin with an <h3> tag. Each heading should begin with the numbered step, for example <h3>Step 1: ...</h3>. All math should abide by the KaTeX syntax outlined in the editing notes.
+    - Each advancement in the solution should be a new line.
+    - Ensure that each sentence in the solution is started on a new line, so use a <p> tag for each sentence.
+    - Write the solutions as if you're explaining the concept to a learner in a friendly, conversational way. 
+    - Imagine you're walking them through the steps, step-by-step, in a tone similar to Sal Khan from Khan Academy. 
 editingNotesLesson: |
   - The keys in the returned JSON object should be:
     {
@@ -215,5 +216,32 @@ editingNotesLesson: |
       type: "lesson"
       body: string
     }
-  - Each page should be about 100 words.
+  - Each page should be about 100 words or less.
+editingNotesPractice: |
+  - The keys in the returned JSON object should be:
+      {
+        objectiveIndex: number,
+        pageIndex: number,
+        type: "practice"
+        question: string,
+        answer: string,
+        notes: string,
+        solution: string
+      }
+editingNotesQans: |
+  - Present your response in a JSON object with the following keys:
+      - `question` (string): The new question.
+      - `answer` (string): The single answer to the question (no explanation needed).
+      - `solution` (string): The step-by-step working that demonstrates how you arrived at the answer.
+      - `notes` (string): Include helpful information for students in preparing for similar questions.
 
+  - For the notes section, follow these rules:
+      - Ensure all sections are numbered in ordered lists
+      - Convert all mathematical expressions to valid KaTeX with appropriate inline/display mode
+
+  - For the `solutions` and `notes` sections:
+      - Avoid using section headers like `<h3>Solution</h3>` or `<h3>Notes</h3>`
+      - Follow HTML guidelines for formatting
+      - Ensure consistent formatting across sections
+      - Return response as valid JSON
+      - Don't use diagrams, images, tables, or graphs

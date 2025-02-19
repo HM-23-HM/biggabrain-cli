@@ -8,6 +8,7 @@ interface PromptsConfig {
   doubleCheck: string;
   editingNotes: string;
   editingNotesLesson: string;
+  editingNotesPractice: string;
   editingNotesQans: string;
   expandSolution: string;
   extractObjectives: string;

@@ -170,3 +170,9 @@ export const generateLessonForObjective = async (objective: string) => {
     `${promptsConfig.generateLesson}\n${objective}\n${promptsConfig.editingNotes}\n${promptsConfig.editingNotesLesson}`
   );
 };
+
+export const generatePracticeForObjective = async (objective: string) => {
+  return sendPrompt(
+    `Objective\n${objective}\n${promptsConfig.generatePractice}\n${promptsConfig.editingNotes}\n${promptsConfig.editingNotesPractice}`
+  );
+};

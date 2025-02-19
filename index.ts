@@ -11,6 +11,7 @@ import {
   extractContentFromImage,
   getUnansweredQues,
   generateLessonForObjective,
+  generatePracticeForObjective,
 } from "./src/utils/ai";
 import { moveFiles } from "./src/utils/cleanup";
 import { convertPdfToPng } from "./src/utils/conversion";
@@ -56,28 +57,47 @@ const processDocuments = async (promptType: keyof typeof promptsConfig) => {
   return content;
 };
 
-async function generateLessons() {
+async function generateLessons(objectives: string[]) {
   try {
-    // Read and parse objectives
-    const objectives: string[] = getObjectsFromFile('outbound/objectives.json');
-    
-    console.log(`Starting to generate lessons for ${objectives.length} objectives...`);
+    console.log(
+      `Starting to generate lessons for ${objectives.length} objectives...`
+    );
 
     // Process each objective
     for (const obj of objectives) {
-      
       // Combine objective and explanatory notes for context
-      
+
       const lesson = await generateLessonForObjective(obj);
-      
-      appendToFile('lessons.txt', lesson, 'outbound');
-      
+
+      appendToFile("lessons.txt", lesson, "outbound");
+
       console.log(`Completed lesson for objective`);
     }
 
-    console.log('All lessons generated successfully!');
+    console.log("All lessons generated successfully!");
   } catch (error) {
-    console.error('Error generating lessons:', error);
+    console.error("Error generating lessons:", error);
+  }
+}
+
+async function generatePractice(objectives: string[]) {
+  try {
+    console.log(
+      `Starting to generate practice problems for ${objectives.length} objectives...`
+    );
+
+    // Process each objective
+    for (const obj of objectives) {
+      const practice = await generatePracticeForObjective(obj);
+
+      appendToFile("practice.txt", practice, "outbound");
+
+      console.log(`Completed practice problems for objective`);
+    }
+
+    console.log("All practice problems generated successfully!");
+  } catch (error) {
+    console.error("Error generating practice problems:", error);
   }
 }
 
@@ -190,11 +210,22 @@ const generateGuides = async () => {
   const processedContent = processJsonTextObjectives(fileContent);
   appendToFile("objectives.json", processedContent, "outbound");
 
-  console.log("Files saved successfully as objectives.json");
+  // console.log("Files saved successfully as objectives.json");
+  const objectives: string[] = getObjectsFromFile("outbound/objectives.json");
 
-  await generateLessons();
-  const processedLessons = processJsonTextLessons(readFileSync('outbound/lessons.txt', 'utf-8'));
+  await generateLessons(objectives);
+  const processedLessons = processJsonTextLessons(
+    readFileSync("outbound/lessons.txt", "utf-8")
+  );
   appendToFile("lessons.json", processedLessons, "outbound");
+
+  await generatePractice(objectives);
+  console.log("Practice problems generated");
+
+  const processedPractice = processJsonTextLessons(
+    readFileSync("outbound/practice.txt", "utf-8")
+  );
+  appendToFile("practice.json", processedPractice, "outbound");
 };
 
 const main = async () => {
@@ -254,3 +285,32 @@ const main = async () => {
 
 const program = new Command();
 main();
+
+export function saveInvalidJson(outputPath: string): void {
+  try {
+    const failedPath = path.join('saved', 'updatedDisplayFailed.txt');
+    const failedContent = readFileSync(failedPath, 'utf-8');
+    const cleanedContent = stripLLMOutputMarkers(failedContent);
+    
+    // Extract JSON objects and format them
+    const failedObjects = cleanedContent
+      .split('```json')
+      .filter(Boolean)
+      .map(obj => {
+        const match = obj.match(/\{[\s\S]*?\}/);  // Non-greedy match
+        return match ? match[0].trim().replace(/\\/g, '\\\\') : ''; // Escape backslashes
+      })
+      .filter(obj => obj);
+
+    // Combine into array string with proper formatting
+    const combinedContent = '[\n  ' + 
+      failedObjects.join(',\n  ') + 
+    '\n]';
+
+    writeFileSync(outputPath, combinedContent);
+    console.log(`Saved invalid objects into ${outputPath}`);
+  } catch (error) {
+    console.error('Error saving invalid JSON:', error);
+    throw error;
+  }
+}

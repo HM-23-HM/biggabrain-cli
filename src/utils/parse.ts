@@ -460,7 +460,7 @@ export function getObjectsFromFile(filePath: string): string[] {
   }
 }
 
-export function processJsonTextLessons(fileContent: string): string {
+export function processJsonTextGuideFree(fileContent: string): string {
   // 1. Remove backtick lines and replace with commas
   const withoutBackticks = fileContent
     .split('\n')
@@ -494,4 +494,38 @@ export function processJsonTextLessons(fileContent: string): string {
 
   return result;
 }
+
+export function addBackslashToCommands(text: string): string {
+  return text.replace(/(?<!\\)\\[a-zA-Z]+/g, match => {
+    // Don't modify \n
+    if (match === '\\n') return match;
+    // Add extra backslash to other commands
+    return '\\' + match;
+  });
+}
+
+export function standardizeTexSyntax(text: string): string {
+  const replacements = [
+    { from: '\\(', to: '(' },
+    { from: '\\)', to: ')' },
+    { from: '\\$', to: '$' },
+    { from: '<tex>', to: '[tex]' },
+    { from: '</tex>', to: '[/tex]' },
+    { from: '<texd>', to: '[texd]' },
+    { from: '</texd>', to: '[/texd]' },
+    { from: 'texd>', to: 'texd]' },
+    { from: '\\[', to: '[tex]' },
+    { from: '\\]', to: '[/tex]' }
+  ];
+
+  return replacements.reduce((text, { from, to }) => 
+    text.replace(new RegExp(from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), to),
+    text
+  );
+}
+
+// Example usage:
+// const text = "This is a \\(test\\) with \\$5 and <tex>x^2</tex>";
+// console.log(standardizeTexSyntax(text));
+// Output: "This is a (test) with $5 and [tex]x^2[/tex]"
 

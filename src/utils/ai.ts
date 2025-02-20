@@ -6,6 +6,8 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY as string);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 import axios from "axios";
 import { removeThinkTags } from "./parse";
+import OpenAI from "openai";
+import { encoding_for_model } from 'tiktoken';
 
 export interface Qans {
   question: string;
@@ -15,29 +17,70 @@ export interface Qans {
   section?: number;
 }
 
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY as string,
+});
+
+// Get the tokenizer for your specific model
+const encoder = encoding_for_model('gpt-4o-mini');
+
+const tokenCounts = { 
+  free: {
+    input: 0,
+    output: 0,
+  },
+  paid: {
+    input: 0,
+    output: 0,
+  }
+}
+
 export const sendPrompt = async (
   prompt: string,
   waitFor: number = 5, // default wait time in minutes
   maxRetries: number = 3,
-  image?: { inlineData: { data: string; mimeType: string } } // maximum number of retries
+  image?: { inlineData: { data: string; mimeType: string } }, // maximum number of retries
+  tier: "free" | "paid" = "free"
 ): Promise<string> => {
   let attempts = 0;
+  const tokenCount = await countTokens(prompt, tier);
+  if (tier === "free") {
+    tokenCounts.free.input += tokenCount;
+  } else {
+    tokenCounts.paid.input += tokenCount;
+  }
+  console.log(`Prompt: ${prompt.slice(0, 50)}...`);
+  console.log(`Token count: ${tokenCount}`);
+  console.log(`Tier: ${tier}`);
 
   while (attempts < maxRetries) {
     try {
       if (attempts > 0) {
         console.log(`Retrying prompt: ${prompt.slice(0, 50)}...`);
       }
-      const input = image ? [prompt, image] : prompt;
-      const result = await model.generateContent(input);
-      return result.response.text();
+
+      if (tier === "free") {
+        const input = image ? [prompt, image] : prompt;
+        const result = await model.generateContent(input);
+        const output = result.response.text();
+        tokenCounts.free.output += await countTokens(output, tier);
+        console.log(tokenCounts);
+        return output;
+      } else {
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini", 
+          messages: [{ role: "user", content: prompt }],
+        });
+        const output = completion.choices[0].message.content || "";
+        tokenCounts.paid.output += await countTokens(output, tier);
+        console.log(tokenCounts);
+        return output;
+      }
     } catch (err: any) {
       if (err.status === 429 || err.status === 503) {
         attempts++;
         console.error(
-          `${
-            err.status
-          } Error. Attempt ${attempts} of ${maxRetries}. Retrying prompt: ${prompt.slice(
+          `${err.status} Error. Attempt ${attempts} of ${maxRetries}. Retrying prompt: ${prompt.slice(
             0,
             50
           )}... in ${waitFor} minutes...`
@@ -56,6 +99,7 @@ export const sendPrompt = async (
     `Failed to generate content after ${maxRetries} attempts due to rate limiting or service unavailability.`
   );
 };
+
 export const extractContentFromImage = async (
   imagePath: string, 
   prompt: string
@@ -174,5 +218,22 @@ export const generateLessonForObjective = async (objective: string) => {
 export const generatePracticeForObjective = async (objective: string) => {
   return sendPrompt(
     `Objective\n${objective}\n${promptsConfig.generatePractice}\n${promptsConfig.editingNotes}\n${promptsConfig.editingNotesPractice}`
+  ,10,3,undefined,'paid');
+};
+
+export const formatLessonTemp = async (lesson: string) => {
+  const formatInstructions = `Format the lesson below based on the following editing notes`
+  return sendPrompt(
+    `${formatInstructions}\nLesson\n${lesson}\nEditing notes\n${promptsConfig.editingNotes}\n${promptsConfig.editingNotesLesson}`
   );
 };
+
+export const countTokens = async (text: string, tier: "free" | "paid" = "free") => {
+  if (tier === "paid") {
+    const tokens = encoder.encode(text)
+    return tokens.length
+  } else {
+    const result = await model.countTokens(text);
+    return result.totalTokens;
+  }
+}

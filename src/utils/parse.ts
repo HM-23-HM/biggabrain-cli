@@ -504,11 +504,12 @@ export function addBackslashToCommands(text: string): string {
   });
 }
 
-export function standardizeTexSyntax(text: string): string {
+export function correctPaidResponse(text: string): string {
   const replacements = [
-    { from: '\\(', to: '(' },
-    { from: '\\)', to: ')' },
-    { from: '\\$', to: '$' },
+    { from: '\\(', to: '[tex]' },
+    { from: '\(', to: '[tex]' },
+    { from: '\\)', to: '[/tex]' },
+    { from: '\)', to: '[/tex]' },
     { from: '<tex>', to: '[tex]' },
     { from: '</tex>', to: '[/tex]' },
     { from: '<texd>', to: '[texd]' },
@@ -523,9 +524,4 @@ export function standardizeTexSyntax(text: string): string {
     text
   );
 }
-
-// Example usage:
-// const text = "This is a \\(test\\) with \\$5 and <tex>x^2</tex>";
-// console.log(standardizeTexSyntax(text));
-// Output: "This is a (test) with $5 and [tex]x^2[/tex]"
 

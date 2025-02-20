@@ -212,7 +212,7 @@ export const performTempAction = async (qans: string[]) => {
 export const generateLessonForObjective = async (objective: string) => {
   return sendPrompt(
     `${promptsConfig.generateLesson}\n${objective}\n${promptsConfig.editingNotes}\n${promptsConfig.editingNotesLesson}`
-  );
+  ,10,3,undefined,'paid');
 };
 
 export const generatePracticeForObjective = async (objective: string) => {

@@ -17,8 +17,10 @@ import { moveFiles } from "./src/utils/cleanup";
 import { convertPdfToPng } from "./src/utils/conversion";
 import { appendToFile, getFilenames, promptsConfig } from "./src/utils/fs";
 import {
+  addBackslashToCommands,
+  correctPaidResponse,
   getObjectsFromFile,
-  processJsonTextLessons,
+  processJsonTextGuideFree,
   processJsonTextObjectives,
   processQuestionFile,
   stripLLMOutputMarkers,
@@ -202,30 +204,38 @@ const secondary = async () => {
 };
 
 const generateGuides = async () => {
-  await processDocuments("extractObjectives");
-  console.log("Objectives extracted");
+  // await processDocuments("extractObjectives");
+  // console.log("Objectives extracted");
 
-  const fileContent = readFileSync("saved/imageToText.txt", "utf-8");
+  // const fileContent = readFileSync("saved/imageToText.txt", "utf-8");
 
-  const processedContent = processJsonTextObjectives(fileContent);
-  appendToFile("objectives.json", processedContent, "outbound");
+  // const processedContent = processJsonTextObjectives(fileContent);
+  // appendToFile("objectives.json", processedContent, "outbound");
 
   // console.log("Files saved successfully as objectives.json");
   const objectives: string[] = getObjectsFromFile("outbound/objectives.json");
 
   await generateLessons(objectives);
-  const processedLessons = processJsonTextLessons(
+  console.log("Lessons generated");
+
+  const processedLessons = processJsonTextGuideFree(
     readFileSync("outbound/lessons.txt", "utf-8")
   );
-  appendToFile("lessons.json", processedLessons, "outbound");
+  console.log("Processed lessons");
 
-  await generatePractice(objectives);
-  console.log("Practice problems generated");
+  appendToFile("lessons.json", correctPaidResponse(addBackslashToCommands(processedLessons)), "outbound");
+  console.log("Lessons appended to file");
 
-  const processedPractice = processJsonTextLessons(
-    readFileSync("outbound/practice.txt", "utf-8")
-  );
-  appendToFile("practice.json", processedPractice, "outbound");
+  // await generatePractice(objectives);
+  // console.log("Practice problems generated");
+
+  // const processedPractice = processJsonTextGuideFree(
+  //   readFileSync("outbound/practice.txt", "utf-8")
+  // );
+  // console.log("Processed practice");
+  
+  // appendToFile("practice.json", addBackslashToCommands(processedPractice), "outbound");
+  // console.log("Practice appended to file");
 };
 
 const main = async () => {

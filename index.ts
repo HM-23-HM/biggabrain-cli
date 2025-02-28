@@ -226,16 +226,16 @@ const generateGuides = async () => {
   appendToFile("lessons.json", correctPaidResponse(addBackslashToCommands(processedLessons)), "outbound");
   console.log("Lessons appended to file");
 
-  // await generatePractice(objectives);
-  // console.log("Practice problems generated");
+  await generatePractice(objectives);
+  console.log("Practice problems generated");
 
-  // const processedPractice = processJsonTextGuideFree(
-  //   readFileSync("outbound/practice.txt", "utf-8")
-  // );
-  // console.log("Processed practice");
+  const processedPractice = processJsonTextGuideFree(
+    readFileSync("outbound/practice.txt", "utf-8")
+  );
+  console.log("Processed practice");
   
-  // appendToFile("practice.json", addBackslashToCommands(processedPractice), "outbound");
-  // console.log("Practice appended to file");
+  appendToFile("practice.json", addBackslashToCommands(processedPractice), "outbound");
+  console.log("Practice appended to file");
 };
 
 const main = async () => {

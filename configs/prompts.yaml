@@ -8,13 +8,14 @@ generateQans: |
   # Generate the questions, answers, notes and solutions from the text above.
   Analyze the math questions above and then for each:
 
-  1. Reword the question and change the numbers used  to avoid intellectual property issues, but preserve the spirit of the original question.
-  2. Make sure your question doesn't include tables, graphs or diagrams of any kind.
-  3. Answer the following:
-  - What key concepts and principles are being assessed in this question? (e.g., algebra, geometry, trigonometry, calculus)
-  - What are the steps involved in solving this problem effectively? Demonstrate while solving the problem. Show all working. Do not skip any steps. I repeat, show *all* of your working.
-  - If applicable, explain the reasoning behind using a specific mathematical operation or formula in each step.
-  - Are there any common misconceptions or pitfalls students should be aware of when answering this type of question? (e.g., order of operations, incorrect application of formulas, sign errors)
+  - Reword the question and change the numbers used  to avoid intellectual property issues, but preserve the spirit of the original question.
+  - Make sure your question doesn't include tables, graphs or diagrams of any kind.
+  - Reason through your solution before answering the question. Use code.
+  - Answer the following:
+    - What key concepts and principles are being assessed in this question? (e.g., algebra, geometry, trigonometry, calculus)
+    - What are the steps involved in solving this problem effectively? Demonstrate while solving the problem. Show all working. Do not skip any steps. I repeat, show *all* of your working.
+    - If applicable, explain the reasoning behind using a specific mathematical operation or formula in each step.
+    - Are there any common misconceptions or pitfalls students should be aware of when answering this type of question? (e.g., order of operations, incorrect application of formulas, sign errors)
 
   - Also abide by the following editing notes
 classify: |
@@ -157,12 +158,13 @@ generateLesson: |
 generatePractice: |
   Analyze the objective above and then:
 
-  1. Create a question that is a good practice question for the objective.
-  2. Make sure your question doesn't include tables, graphs or diagrams of any kind.
-  3. Answer the following:
-  - What are the steps involved in solving this problem effectively? Demonstrate while solving the problem. Show all working. Do not skip any steps. I repeat, show *all* of your working.
-  - If applicable, explain the reasoning behind using a specific mathematical operation or formula in each step.
-  - Are there any common misconceptions or pitfalls students should be aware of when answering this type of question? (e.g., order of operations, incorrect application of formulas, sign errors)
+  - Create a question that is a good practice question for the objective.
+  - Make sure your question doesn't include tables, graphs or diagrams of any kind.
+  -Reason through your solution before answering the question. Use code.
+  - Answer the following:
+    - What are the steps involved in solving this problem effectively? Demonstrate while solving the problem. Show all working. Do not skip any steps. I repeat, show *all* of your working.
+    - If applicable, explain the reasoning behind using a specific mathematical operation or formula in each step.
+  -   Are there any common misconceptions or pitfalls students should be aware of when answering this type of question? (e.g., order of operations, incorrect application of formulas, sign errors)
 
   - Also abide by the following editing notes
 editingNotes: |
@@ -209,7 +211,7 @@ editingNotes: |
 
   - For solutions:
     - Each step should begin with an <h3> tag. Each heading should begin with the numbered step, for example <h3>Step 1: ...</h3>. 
-    -All math in the heading should abide by the KaTeX syntax outlined in the editing notes.
+    - All math in the heading should abide by the KaTeX syntax outlined in the editing notes.
     - Each advancement in the solution should be a new line.
     - Ensure that each sentence in the solution is started on a new line, so use a <p> tag for each sentence.
 

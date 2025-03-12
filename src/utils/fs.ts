@@ -5,6 +5,7 @@ import * as yaml from "js-yaml";
 interface PromptsConfig {
   classify: string;
   correctness: string;
+  correctTex: string;
   doubleCheck: string;
   editingNotes: string;
   editingNotesLesson: string;
@@ -136,4 +137,19 @@ export function appendToJsonFile(
 
   // Write the updated content back to the file
   fs.writeFileSync(filePath, JSON.stringify(existingContent, null, 2), "utf8");
+}
+
+export function copyFileToJson(filePath: string) {
+  try {
+    const dir = path.dirname(filePath);
+    const basename = path.basename(filePath, path.extname(filePath));
+    
+    const newPath = path.join(dir, `${basename}.json`);
+    
+    fs.copyFileSync(filePath, newPath);
+    
+    console.log(`File copied successfully to ${newPath}`);
+  } catch (error) {
+    console.error('Error copying file:', error);
+  }
 }

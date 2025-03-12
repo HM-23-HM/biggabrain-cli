@@ -237,3 +237,7 @@ export const countTokens = async (text: string, tier: "free" | "paid" = "free") 
     return result.totalTokens;
   }
 }
+
+export const correctTex = async (lessonOrPractice: string) => {
+  return sendPrompt(`${promptsConfig.correctTex}\n${lessonOrPractice}`)
+}

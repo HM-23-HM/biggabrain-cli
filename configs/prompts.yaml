@@ -5,12 +5,12 @@ imageToText: |
   - If the question has an image or graph, skip the question and return ""
   - If the question requires tables, figures or drawings then skip them
 generateQans: |
-  # Generate the questions, answers, notes and solutions from the text above.
+  # Generate the questions, solutions, notes and answers from the text above.
   Analyze the math questions above and then for each:
 
   - Reword the question and change the numbers used  to avoid intellectual property issues, but preserve the spirit of the original question.
   - Make sure your question doesn't include tables, graphs or diagrams of any kind.
-  - Reason through your solution before answering the question. Use code.
+  - Reason through your solution before answering the question. Use code. Derive your answer from the solution.
   - Answer the following:
     - What key concepts and principles are being assessed in this question? (e.g., algebra, geometry, trigonometry, calculus)
     - What are the steps involved in solving this problem effectively? Demonstrate while solving the problem. Show all working. Do not skip any steps. I repeat, show *all* of your working.
@@ -130,6 +130,56 @@ correctness: |
   Spend no more than 1 minute thinking about each question.
 
   Here are the questions:
+correctTex: |
+  Task:
+  You are given JSON data that contains mathematical expressions. Your task is to ensure all mathematical expressions are properly enclosed in [tex]...[/tex] tags without modifying any other part of the text.
+
+  Rules for Modifying [tex] Tags:
+
+  1. CRITICAL: Any mathematical expressions indicated by LaTeX notation (especially with escape characters like \\) must be enclosed in [tex]...[/tex] tags, even if they currently appear without tags.
+     However, When multiple mathematical expressions appear in sequence, they should be wrapped within a SINGLE pair of [tex] tags rather than multiple separate tags
+  2. If an expression inside [tex]...[/tex] should be fully enclosed, move [tex] so that the entire mathematical expression is within the tags.
+  3. If [tex] is incorrectly placed around non-math content (like plain text), remove the tags.
+  4. Ensure that every complete mathematical expression remains within a single pair of [tex]...[/tex] tags.
+  5. Maintain correct HTML structure and avoid breaking paragraph (<p>), heading (<h4>), and list elements.
+  6. Do not alter non-mathematical content, spacing, punctuation, or any other part of the JSON structure.
+  7. Return the other fields of the JSON object unchanged.
+  8. Look specifically for LaTeX notation with backslashes (\\) outside of [tex] tags and enclose those in [tex]...[/tex] tags.
+  9. Don't add unecessary parentheses, for example "\\(", "()" or "//)" around math notation.
+  10. If the math contains multiline notation, for example "\\begin{equation*}" then use [texd] instead of [tex] tags.
+  11. Process ALL fields in the JSON, including "question", "answer", "notes", "solution", "body", "objective", and "explanatory".
+
+  Example Input:
+  "<p>Scalar multiplication involves multiplying a vector by a scalar [tex]a single number[/tex]. Let's see an example.</p><p>Given vector \\overrightarrow{A} = [tex]\\begin{pmatrix} 3 \\\\ 4 \\end{pmatrix}[/tex] and scalar \\lambda = 2:</p><p>Calculating gives:</p><p>[tex]\\overrightarrow{B} = [tex]\\begin{pmatrix} 2 \\times 3 \\\\ 2 \\times 4 \\end{pmatrix} = [tex]\\begin{pmatrix} 6 \\\\ 8 \\end{pmatrix}[/tex]</p></p><p>The magnitude of \\overrightarrow{B} is:</p><p>|\\overrightarrow{B}| = \\sqrt{[tex]6^2 + 8^2[/tex]} = \\sqrt{36 + 64} = \\sqrt{100} = 10.</p>"
+  "<p>Second component of [tex](\\overrightarrow{a})[/tex]: 4 \\quad \\text{and} \\quad  [tex](\\overrightarrow{b})[/tex]: 8"
+  "
+    {
+    "objectiveIndex": 1,
+    "pageIndex": 1,
+    "type": "practice",
+    "question": "Given the vectors \\overrightarrow{a} = (3, 4) and \\overrightarrow{b} = (6, 8), determine if they are equal vectors, parallel vectors, and find the scalar multiple if applicable.",
+    "answer": "The vectors \\overrightarrow{a} and \\overrightarrow{b} are equal vectors and parallel vectors. The scalar multiple is 2.",
+    "notes": "<ol><li>Students often confuse parallel vectors with equal vectors; remember that equal vectors have the same magnitude and direction.</li><li>Ensure to compare the components accurately when determining equality.</li><li>When finding scalar multiples, be careful with multiplication; using the wrong scalar can lead to incorrect conclusions.</li></ol>",
+    "solution": "<h3>Step 1: Define the vectors</h3> <p>We have two vectors given: [tex]\\overrightarrow{a} = (3, 4)[/tex] and [tex]\\overrightarrow{b} = (6, 8)[/tex].</p> <h3>Step 2: Check if the vectors are equal</h3> <p>Vectors are considered equal if their components are the same.</p> <p>Comparing the components, we see:</p> <p>First component of [tex]\\overrightarrow{a}: 3 \\quad \\text{and} \\quad \\overrightarrow{b}: 6[/tex]</p> <p>Second component of [tex]\\overrightarrow{a}: 4 \\quad \\text{and} \\quad \\overrightarrow{b}: 8[/tex]</p> <p>Since the components are different, [tex]\\overrightarrow{a} \\neq \\overrightarrow{b}[/tex], thus they are not equal vectors.</p> <h3>Step 3: Check if the vectors are parallel</h3> <p>Vectors are parallel if one is a scalar multiple of another. To find the scalar, we compare their components:</p> <p>For the first components: [tex]\\frac{6}{3} = 2  \\quad \\text{(which is the same scalar for the second components too)}[/tex]</p> <p>Second components: [tex]\\frac{8}{4} = 2[/tex]</p> <p>This confirms that both components share the same scalar multiple of 2.</p> <p>This means that [tex]\\overrightarrow{b} = 2 \\times \\overrightarrow{a}[/tex], making them parallel.</p> <h3>Step 4: Conclusion</h3> <p>The vectors \\overrightarrow{a} and \\overrightarrow{b} are equal vectors.</p> <p>They are also parallel vectors.</p> <p>The scalar multiple is 2.</p>"
+  }
+  "
+  
+  Example Output:
+  "<p>Scalar multiplication involves multiplying a vector by a scalar (a single number). Let's see an example.</p><p>Given vector [tex]\\overrightarrow{A} = \\begin{pmatrix} 3 \\\\ 4 \\end{pmatrix}[/tex] and scalar [tex]\\lambda = 2[/tex]:</p><p>Calculating gives:</p><p>[tex]\\overrightarrow{B} = \\begin{pmatrix} 2 \\times 3 \\\\ 2 \\times 4 \\end{pmatrix} = \\begin{pmatrix} 6 \\\\ 8 \\end{pmatrix}[/tex]</p><p>The magnitude of [tex]\\overrightarrow{B}[/tex] is:</p><p>[tex]|\\overrightarrow{B}| = \\sqrt{6^2 + 8^2} = \\sqrt{36 + 64} = \\sqrt{100} = 10[/tex]</p>"
+  "<p>Second component of [tex]\\overrightarrow{a}: 4 \\quad \\text{and} \\quad \\overrightarrow{b}: 8[/tex]"
+  "
+    {
+    "objectiveIndex": 1,
+    "pageIndex": 1,
+    "type": "practice",
+    "question": "Given the vectors [tex]\\overrightarrow{a} = (3, 4) \\text{and} \\overrightarrow{b} = (6, 8)[/tex], determine if they are equal vectors, parallel vectors, and find the scalar multiple if applicable.",
+    "answer": "The vectors [tex]\\overrightarrow{a} \\text{and} \\overrightarrow{b}[/tex] are equal vectors and parallel vectors. The scalar multiple is 2.",
+    "notes": "<ol><li>Students often confuse parallel vectors with equal vectors; remember that equal vectors have the same magnitude and direction.</li><li>Ensure to compare the components accurately when determining equality.</li><li>When finding scalar multiples, be careful with multiplication; using the wrong scalar can lead to incorrect conclusions.</li></ol>",
+    "solution": "<h3>Step 1: Define the vectors</h3> <p>We have two vectors given: [tex]\\overrightarrow{a} = (3, 4) \\text{and} \\overrightarrow{b} = (6, 8)[/tex].</p> <h3>Step 2: Check if the vectors are equal</h3> <p>Vectors are considered equal if their components are the same.</p> <p>Comparing the components, we see:</p> <p>First component of [tex]\\overrightarrow{a}: 3 \\quad \\text{and} \\quad \\overrightarrow{b}: 6[/tex]</p> <p>Second component of [tex]\\overrightarrow{a}: 4 \\quad \\text{and} \\quad \\overrightarrow{b}: 8[/tex]</p> <p>Since the components are different, [tex]\\overrightarrow{a} \\neq \\overrightarrow{b}[/tex], thus they are not equal vectors.</p> <h3>Step 3: Check if the vectors are parallel</h3> <p>Vectors are parallel if one is a scalar multiple of another. To find the scalar, we compare their components:</p> <p>For the first components: [tex]\\frac{6}{3} = 2  \\quad \\text{(which is the same scalar for the second components too)}[/tex]</p> <p>Second components: [tex]\\frac{8}{4} = 2[/tex]</p> <p>This confirms that both components share the same scalar multiple of 2.</p> <p>This means that [tex]\\overrightarrow{b} = 2 \\times \\overrightarrow{a}[/tex], making them parallel.</p> <h3>Step 4: Conclusion</h3> <p>The vectors \\overrightarrow{a} and \\overrightarrow{b} are equal vectors.</p> <p>They are also parallel vectors.</p> <p>The scalar multiple is 2.</p>"
+  }
+  "
+
+  Just give me back the modified objects. Don't give me back any code.
 extractObjectives: |
   Please analyze this syllabus page and create an array of objects, 
   where each object represents a row with an objective and its corresponding explanatory note. 
@@ -148,13 +198,49 @@ extractObjectives: |
     'explanatory': 'For m ∈ Z, n ∈ Z:\n(i) x^m \\times x^n = x^{m+n}\n(ii) \\frac{x^m}{x^n} = x^{m-n}\n(iii) (x^m)^n = x^{mn}\n(iv) x^{-n} = \\frac{1}{x^n}'
     }
   ]
+  Some objectives are comprised of sub-objectives. With each sub-objective prepended by a letter (like (a), (b), (c), etc.).
+  For example:
+  ```
+  calculate:
+  (a) discount;
+  (b) sales tax;
+  (c) profit; and,
+  (d) loss;
+  ```
+  Treat such objectives as a single objective, but separate each sub-objective with a \n symbol like this:
+  ```
+  calculate:\n(a) discount;\n(b) sales tax;\n(c) profit; and, \n(d) loss;
+  ```
+  Don't call them sub-objectives.
   Please maintain the numbering from the source and ensure all mathematical expressions 
   are properly escaped for JSON strings. If an objective has no explanatory note, 
   or vice versa, include an empty string for that field. Start the numbering from 1.
 generateLesson: |
-  Develop a lesson with the following objectives and ensure the following requirements are met:
+  Develop a comprehensive lesson with the following objectives and ensure the following requirements are met:
   - Abide by the following editing notes
+  - Some objectives are comprised of sub-objectives. With each sub-objective prepended by a letter (like (a), (b), (c), etc.).
+    For example:
+    ```
+    {
+    "objectiveIndex": 1,
+    "objective": "calculate:\n(a) discount;\n(b) sales tax;\n(c) profit; and, \n(d) loss;",
+    "explanatory": ""
+    },
+    ```
+    Dedicate a separate lesson page for each sub-objective.
   - Provide simple examples after each concept is introduced to solidify understanding. These examples should also be in the body
+  
+  IMPORTANT ADDITIONAL REQUIREMENTS:
+  1. Define all new terms and concepts clearly when they are first introduced. For example, if you mention "invertible" or any other technical term, explain what it means immediately.
+  2. Ensure all examples are fully completed and carried through to their conclusion. Don't stop mid-example or leave calculations incomplete.
+  3. Each lesson should have a proper beginning, middle, and end, with a clear flow of ideas.
+  4. All mathematical formulas and expressions should be properly enclosed in [tex]...[/tex] tags.
+  5. Use simple, straightforward language accessible to students encountering these concepts for the first time.
+  6. For worked examples, show every step of the calculation process.
+  7. After introducing a concept, include both the theoretical explanation and a practical application.
+  8. End each lesson with a brief summary of the key points covered.
+
+  Please create complete, thorough lessons that would be immediately ready for classroom use without further editing.
 generatePractice: |
   Analyze the objective above and then:
 
@@ -170,8 +256,13 @@ generatePractice: |
 editingNotes: |
   - Ensure that the answer is correct and matches the solution provided. This is the most important rule.
   - Before responding, ensure the answer and the outcome of the solution have the same value. This is the second most important rule.
-
-  - If the objective doesn't require decimals and fractions, then structure the questions so that only whole numbers are used throughout the solution and answer.
+  - If the question has multiple parts, then separate each part to a separate list item on a new line. For example:
+    ```
+    <li> ... </li>
+    <li> ... </li>
+    <li> ... </li>
+    ```
+  - If the objective doesn't require decimals and fractions, then structure the questions so that only whole numbers are needed throughout every step of the solution and answer.
   - Escape \ in KaTeX syntax to prevent errors in JSON. For example, [tex]\frac{31}{10}[/tex] should become [tex]\\frac{31}{10}[/tex]
   - Take your time and give me the correct answers. I don't want to see anything like this: `Step 4: There must be a typo. The answer should be 21.`
   - Don't escape parentheses outside of [tex] or [texd] tags. I don't want to see anything like this: \(a\)
@@ -180,10 +271,11 @@ editingNotes: |
     - Multiple lines: [texd]\\begin{equation*} \\begin{split} x + y &= 5 \\ y &= 5 - x \\end{split} \\end{equation*}[/texd]
     - Use & before = signs to align equations
     - Use \\ for line breaks in multi-line equations
+  - Don't nest [tex] or [texd] tags. For example, don't do this: [tex][tex]x^2[/tex][/tex]
 
   - Keep inline equations (within text) using [tex] without environments
   - If a "section" property, for example, `"section": 9` is present, return it as is
- 
+
   - For money within [tex] or [texd] tags, use \\$ instead of $. Outside of [tex] or [texd] tags, use $ for money.
   - Write for a grade-8 reading level. Don't sound like you're speaking to children. Get straight to the point in a conversational tone.
   - Make the tone conversational. For example:
@@ -227,6 +319,7 @@ editingNotesLesson: |
       body: string
     }
   - Each page should be about 100 words or less.
+  - Ensure that there are no duplicate keys in the returned JSON object.
   - Split the lesson into pages where necessary
   - Break up the body on each page into sections. Each section should start with an <h4> tag. 
   - The worked example should be titled "Worked example" and have solutions that follows the editing notes for 'solutions'
@@ -237,15 +330,15 @@ editingNotesPractice: |
         pageIndex: number,
         type: "practice"
         question: string,
+        solution: string,
         answer: string,
-        notes: string,
-        solution: string
+        notes: string
       }
 editingNotesQans: |
   - Present your response in a JSON object with the following keys:
       - `question` (string): The new question.
-      - `answer` (string): The single answer to the question (no explanation needed).
       - `solution` (string): The step-by-step working that demonstrates how you arrived at the answer.
+      - `answer` (string): The single answer to the question (no explanation needed).
       - `notes` (string): Include helpful information for students in preparing for similar questions.
 
   - For the notes section, follow these rules:

@@ -12,17 +12,26 @@ import {
   getUnansweredQues,
   generateLessonForObjective,
   generatePracticeForObjective,
+  correctTex,
 } from "./src/utils/ai";
 import { moveFiles } from "./src/utils/cleanup";
 import { convertPdfToPng } from "./src/utils/conversion";
-import { appendToFile, getFilenames, promptsConfig } from "./src/utils/fs";
+import {
+  appendToFile,
+  copyFileToJson,
+  getFilenames,
+  promptsConfig,
+} from "./src/utils/fs";
 import {
   addBackslashToCommands,
+  chopUpDis,
   correctPaidResponse,
   getObjectsFromFile,
+  processJsonTextAgain,
   processJsonTextGuideFree,
   processJsonTextObjectives,
   processQuestionFile,
+  replaceDemtingyah,
   stripLLMOutputMarkers,
 } from "./src/utils/parse";
 import { fixExcessiveBackslashes } from "./src/utils/validation";
@@ -213,29 +222,47 @@ const generateGuides = async () => {
   // appendToFile("objectives.json", processedContent, "outbound");
 
   // console.log("Files saved successfully as objectives.json");
-  const objectives: string[] = getObjectsFromFile("outbound/objectives.json");
+  // const objectives: string[] = getObjectsFromFile("outbound/objectives.json");
 
-  await generateLessons(objectives);
-  console.log("Lessons generated");
+  // // await generateLessons(objectives);
+  // // console.log("Lessons generated");
 
-  const processedLessons = processJsonTextGuideFree(
-    readFileSync("outbound/lessons.txt", "utf-8")
-  );
-  console.log("Processed lessons");
+    // await generatePractice(objectives);
+  // console.log("Practice problems generated");
 
-  appendToFile("lessons.json", correctPaidResponse(addBackslashToCommands(processedLessons)), "outbound");
-  console.log("Lessons appended to file");
-
-  await generatePractice(objectives);
-  console.log("Practice problems generated");
-
-  const processedPractice = processJsonTextGuideFree(
-    readFileSync("outbound/practice.txt", "utf-8")
-  );
-  console.log("Processed practice");
+  const delimiter = "*****"
   
-  appendToFile("practice.json", addBackslashToCommands(processedPractice), "outbound");
-  console.log("Practice appended to file");
+  // const originalLessonContent = readFileSync("outbound/lessons.txt", "utf-8");
+
+  // const segmentedLessons = chopUpDis(originalLessonContent, delimiter);
+  // appendToFile("segmentedLessons.txt", segmentedLessons)
+
+  // const segLessonsList = segmentedLessons.split(delimiter).filter(Boolean);
+  // console.log(`There are ${segLessonsList.length} segmented lessons`);
+  // segLessonsList.forEach((lesson, index) => console.log(`${index}:${lesson.length}`))
+
+  // const correctedLessons = await processInBatches(segLessonsList,3,correctTex)
+  // console.log(`There are ${correctedLessons.length} corrected lessons`);
+  // appendToFile("correctedLessons.txt", correctedLessons.join('\n'))
+
+  // const formattedLessons = processJsonTextAgain(addBackslashToCommands(correctedLessons.join('\n')))
+  // appendToFile("correctedLessons.json", formattedLessons, "outbound");
+
+  const practiceContent = readFileSync("outbound/practice.txt", "utf-8");
+
+  const segmentedPractice = chopUpDis(practiceContent, delimiter);
+  appendToFile("segmentedPractice.txt", segmentedPractice)
+
+  const segPracticeList = segmentedPractice.split(delimiter).filter(Boolean);
+  console.log(`There are ${segPracticeList.length} segmented practice`);
+  segPracticeList.forEach((lesson, index) => console.log(`${index}:${lesson.length}`))
+
+  const correctedPractice = await processInBatches(segPracticeList,3,correctTex)
+  console.log(`There are ${correctedPractice.length} corrected practice`);
+  appendToFile("correctedPractice.txt", correctedPractice.join('\n'));
+
+  const formattedPractice = processJsonTextAgain(addBackslashToCommands(correctedPractice.join('\n')))
+  appendToFile("correctedPractice.json", formattedPractice, "outbound");
 };
 
 const main = async () => {
@@ -298,29 +325,27 @@ main();
 
 export function saveInvalidJson(outputPath: string): void {
   try {
-    const failedPath = path.join('saved', 'updatedDisplayFailed.txt');
-    const failedContent = readFileSync(failedPath, 'utf-8');
+    const failedPath = path.join("saved", "updatedDisplayFailed.txt");
+    const failedContent = readFileSync(failedPath, "utf-8");
     const cleanedContent = stripLLMOutputMarkers(failedContent);
-    
+
     // Extract JSON objects and format them
     const failedObjects = cleanedContent
-      .split('```json')
+      .split("```json")
       .filter(Boolean)
-      .map(obj => {
-        const match = obj.match(/\{[\s\S]*?\}/);  // Non-greedy match
-        return match ? match[0].trim().replace(/\\/g, '\\\\') : ''; // Escape backslashes
+      .map((obj) => {
+        const match = obj.match(/\{[\s\S]*?\}/); // Non-greedy match
+        return match ? match[0].trim().replace(/\\/g, "\\\\") : ""; // Escape backslashes
       })
-      .filter(obj => obj);
+      .filter((obj) => obj);
 
     // Combine into array string with proper formatting
-    const combinedContent = '[\n  ' + 
-      failedObjects.join(',\n  ') + 
-    '\n]';
+    const combinedContent = "[\n  " + failedObjects.join(",\n  ") + "\n]";
 
     writeFileSync(outputPath, combinedContent);
     console.log(`Saved invalid objects into ${outputPath}`);
   } catch (error) {
-    console.error('Error saving invalid JSON:', error);
+    console.error("Error saving invalid JSON:", error);
     throw error;
   }
 }

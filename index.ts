@@ -13,7 +13,7 @@ const main = async () => {
 
   program.action(async () => {
     try {
-      await contentService.runPrimaryWorkflow();
+      await contentService.runQansWorkflow();
     } catch (error) {
       console.error("Error in default command:", error);
       process.exit(1);
@@ -25,7 +25,7 @@ const main = async () => {
     .description("Run primary processing of questions")
     .action(async () => {
       try {
-        await contentService.runPrimaryWorkflow();
+        await contentService.runQansWorkflow();
       } catch (error) {
         console.error("Error in primary command:", error);
         process.exit(1);

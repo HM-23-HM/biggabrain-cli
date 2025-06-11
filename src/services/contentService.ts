@@ -67,76 +67,14 @@ export class ContentService {
     return content;
   }
 
-  public async runPrimaryWorkflow(): Promise<void> {
+  public async runQansWorkflow(): Promise<void> {
     try {
-      const questions = await this.extractSyllabusContent();
-      console.log("questions saved to file");
+      const objectives = await this.extractSyllabusContent();
+      console.log("objectives saved to file");
 
-      const combinedQans: string[] = [];
-      const maxIterations = 2;
-      const batchSize = 3;
-      let iterations = 0;
-      let unanswered: MessageContent[] = questions;
+      const combinedQans = await this.generateQansFromObjectives(objectives);
+      await this.classifyAndEditQans(combinedQans);
 
-      while (unanswered.length && iterations < maxIterations) {
-        const batchPromises = [];
-        for (let i = 0; i < unanswered.length; i += batchSize) {
-          const batch = unanswered.slice(i, i + batchSize);
-          batchPromises.push(this.generateQans(batch));
-        }
-
-        const batchResponses = await Promise.all(batchPromises);
-        const responses = batchResponses.flat();
-
-        unanswered = this.getUnansweredQuestions(unanswered, responses);
-        combinedQans.push(...responses);
-
-        if (unanswered.length) {
-          console.log(
-            `Unanswered questions after iteration ${iterations + 1}:`,
-            unanswered
-          );
-        }
-
-        iterations++;
-      }
-
-      if (unanswered.length) {
-        console.log(
-          `Some questions remain unanswered after ${maxIterations} iterations:`,
-          unanswered
-        );
-        this.fileService.appendToFile("unanswered.txt", this.formatObjQuestions(unanswered));
-      } else {
-        console.log("All questions answered.");
-      }
-
-      const content = JSON.stringify(combinedQans, null, 2);
-      this.fileService.appendToFile("combined.json", content);
-
-      const classifiedResults = await this.processInBatches(
-        combinedQans,
-        batchSize,
-        this.classifyQuestions.bind(this)
-      );
-      console.log("classification complete");
-      
-      const wFixedKatex = this.editingService.fixExcessiveBackslashes(classifiedResults);
-      console.log("katex fixed");
-      
-      const doubleChecked = await this.processInBatches(
-        wFixedKatex,
-        batchSize,
-        this.doubleCheckQans.bind(this)
-      );
-      console.log("double check complete");
-
-      doubleChecked.forEach((result) => {
-        const parsed = this.editingService.stripLLMOutputMarkers(result);
-        this.fileService.appendToFile("classified.txt", parsed, "outbound");
-      });
-
-      console.log("Classification complete.");
     } catch (err) {
       console.error("Error in primary workflow:", err);
       throw err;
@@ -144,6 +82,97 @@ export class ContentService {
       await this.fileService.moveFiles();
       console.log("Files moved successfully.");
     }
+  }
+
+  private async generateQansFromObjectives(objectives: MessageContent[]): Promise<string[]> {
+    const combinedQans: string[] = [];
+    const maxIterations = 2;
+    const batchSize = 3;
+    let iterations = 0;
+    let unanswered: MessageContent[] = objectives;
+
+    while (unanswered.length && iterations < maxIterations) {
+      const responses = await this.processQansBatch(unanswered, batchSize);
+      unanswered = this.getUnansweredQuestions(unanswered, responses);
+      combinedQans.push(...responses);
+
+      if (unanswered.length) {
+        console.log(
+          `Unanswered questions after iteration ${iterations + 1}:`,
+          unanswered
+        );
+      }
+
+      iterations++;
+    }
+
+    await this.saveUnansweredQuestions(unanswered, maxIterations);
+    await this.saveCombinedQans(combinedQans);
+
+    return combinedQans;
+  }
+
+  private async processQansBatch(unanswered: MessageContent[], batchSize: number): Promise<string[]> {
+    const batchPromises = [];
+    for (let i = 0; i < unanswered.length; i += batchSize) {
+      const batch = unanswered.slice(i, i + batchSize);
+      batchPromises.push(this.generateQans(batch));
+    }
+
+    const batchResponses = await Promise.all(batchPromises);
+    return batchResponses.flat();
+  }
+
+  private async saveUnansweredQuestions(unanswered: MessageContent[], maxIterations: number): Promise<void> {
+    if (unanswered.length) {
+      console.log(
+        `Some questions remain unanswered after ${maxIterations} iterations:`,
+        unanswered
+      );
+      this.fileService.appendToFile("unanswered.txt", this.formatObjQuestions(unanswered));
+    } else {
+      console.log("All questions answered.");
+    }
+  }
+
+  private async saveCombinedQans(combinedQans: string[]): Promise<void> {
+    const content = JSON.stringify(combinedQans, null, 2);
+    this.fileService.appendToFile("combined.json", content);
+  }
+
+  private async classifyAndEditQans(combinedQans: string[]): Promise<void> {
+    const batchSize = 3;
+
+    const classifiedResults = await this.processInBatches(
+      combinedQans,
+      batchSize,
+      this.classifyQuestions.bind(this)
+    );
+    console.log("classification complete");
+    
+    const edited = await this.editAndDoubleCheckResults(classifiedResults, batchSize);
+    await this.saveFinalResults(edited);
+  }
+
+  private async editAndDoubleCheckResults(classifiedResults: string[], batchSize: number): Promise<string[]> {
+    const wFixedKatex = this.editingService.fixExcessiveBackslashes(classifiedResults);
+    console.log("katex fixed");
+    
+    const doubleChecked = await this.processInBatches(
+      wFixedKatex,
+      batchSize,
+      this.doubleCheckQans.bind(this)
+    );
+    console.log("double check complete");
+
+    return doubleChecked;
+  }
+
+  private async saveFinalResults(results: string[]): Promise<void> {
+    results.forEach((result) => {
+      const parsed = this.editingService.stripLLMOutputMarkers(result);
+      this.fileService.appendToFile("classified.txt", parsed, "outbound");
+    });
   }
 
   public async runSecondaryWorkflow(): Promise<void> {

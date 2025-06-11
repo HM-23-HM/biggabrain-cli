@@ -21,44 +21,44 @@ const main = async () => {
   });
 
   program
-    .command("primary")
-    .description("Run primary processing of questions")
+    .command("qans")
+    .description("Generates questions, answers, notes, and solutions (Qans) from syllabus objectives")
     .action(async () => {
       try {
         await contentService.runQansWorkflow();
       } catch (error) {
-        console.error("Error in primary command:", error);
+        console.error("Error in qans command:", error);
         process.exit(1);
       }
     });
 
   program
-    .command("secondary")
-    .description("Run secondary processing of expanded solutions")
+    .command("expand")
+    .description("Expands the solutions of the previously generated Qans")
     .action(async () => {
       try {
         await contentService.runExpandSolutionsWorkflow();
       } catch (error) {
-        console.error("Error in secondary command:", error);
+        console.error("Error in expand command:", error);
         process.exit(1);
       }
     });
 
   program
-    .command("generateGuides")
-    .description("Generate guides from objectives")
+    .command("lp")
+    .description("Generates lessons and practice problems from objectives")
     .action(async () => {
       try {
-        await contentService.runGenerateGuidesWorkflow();
+        await contentService.runLessonsAndPracticeWorkflow();
       } catch (error) {
-        console.error("Error in generateGuides command:", error);
+        console.error("Error in lp command:", error);
         process.exit(1);
       }
     });
 
   program
     .command("marketing")
-    .description("Generate marketing content")
+    .description("Generates marketing images")
     .action(async () => {
       try {
         await contentService.runMarketingWorkflow();

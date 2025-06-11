@@ -78,78 +78,6 @@ export class EditingService {
     );
   }
 
-  public stripTextFunctions(input: string): string {
-    return input.replace(
-      /\\text\{(.*?)\}/g,
-      (match, content) => `<p>${content}</p>`
-    );
-  }
-
-  public stripTopmostPTags(input: string): string {
-    return input.replace(/^<p>(.*?)<\/p>$/g, "$1");
-  }
-
-  public extractJsonObjects(input: string): string[] {
-    const regex = /```json\s*([\s\S]*?)\s*```/g;
-    const matches = [];
-    let match;
-
-    while ((match = regex.exec(input)) !== null) {
-      matches.push(match[1].trim());
-    }
-
-    return matches;
-  }
-
-  public extractAndSaveJsonStrings(
-    input: string,
-    filename: string = "output.json"
-  ): void {
-    const regex = /```json\s*([\s\S]*?)\s*```/g;
-    const matches: string[] = [];
-    let match;
-
-    while ((match = regex.exec(input)) !== null) {
-      let cleanedJson = match[1].replace(/\n/g, "").trim();
-      cleanedJson = cleanedJson.replace(/^"\{/, "{").replace(/\}"$/, "}");
-      matches.push(cleanedJson);
-    }
-
-    try {
-      fs.writeFileSync(filename, JSON.stringify(matches, null, 2));
-      console.log(`✅ JSON strings saved successfully to ${filename}`);
-    } catch (error) {
-      console.error("❌ Error saving JSON strings:", error);
-    }
-  }
-
-  public extractValidJsonStringsFromFile(filePath: string): string[] {
-    try {
-      const fileContent = fs.readFileSync(filePath, "utf-8");
-      const jsonRegex = /{[\s\S]*?}/g;
-      const matches = fileContent.match(jsonRegex);
-
-      if (!matches) {
-        console.error("No valid JSON objects found in the file.");
-        return [];
-      }
-
-      const validJsonStrings = matches.filter((jsonString) => {
-        try {
-          JSON.parse(jsonString);
-          return true;
-        } catch {
-          return false;
-        }
-      });
-
-      return validJsonStrings;
-    } catch (error) {
-      console.error("Error reading file:", error);
-      return [];
-    }
-  }
-
   public processQuestionFile(fileContent: string): QuestionFile {
     const result: QuestionFile = {
       content: fileContent,
@@ -214,10 +142,6 @@ export class EditingService {
     return braceCount === 0;
   }
 
-  public removeThinkTags(input: string): string {
-    return input.replace(/<think>[\s\S]*?<\/think>/g, "");
-  }
-
   public formatKatex(html: string): string {
     return this.wrapTextWith(this.wrapTEXWith(html));
   }
@@ -261,10 +185,6 @@ export class EditingService {
       .replace(/<a /g, '<a class="text-blue-600 hover:underline" ');
 
     return styledHtml;
-  }
-
-  public parseHtml(html: string): string {
-    return html;
   }
 
   /** Cleans the objectives text by removing backticks and misplaced brackets
@@ -317,44 +237,17 @@ export class EditingService {
     }
   }
 
-  public processJsonTextGuideFree(fileContent: string): string {
-    const withoutBackticks = fileContent
-      .split("\n")
-      .map((line) => (line.trim().startsWith("```") ? "," : line))
-      .join("\n");
-
-    const withoutBrackets = withoutBackticks
-      .replace(/^\s*\[\s*\n/m, "")
-      .replace(/\n\s*\]\s*$/m, "");
-
-    const objects = withoutBrackets
-      .split(/(?<="})\s*(?={)/)
-      .map((obj) => obj.trim())
-      .filter((obj) => obj.length > 0);
-
-    const processedObjects = objects.map((obj) => {
-      return obj.replace(/^\s*{/, "{").replace(/}\s*$/, "}");
-    });
-
-    const result = `[\n  ${processedObjects.join(",\n  ")}\n]`
-      .replace(/,\s*,/g, ",")
-      .replace(/^\[\s*,/, "[")
-      .replace(/,\s*\]$/, "\n]");
-
-    return result;
-  }
-
   private addBrackets(str: string): string {
     if (!str || str.length === 0) return "[]";
     return "[" + str.slice(1) + "]";
   }
 
   public chopUpDis(fileContent: string, delimiter: string = "***"): string {
-    const first = this.replaceDemtingyah(fileContent, delimiter);
+    const first = this.removeTripleBackticks(fileContent, delimiter);
     return this.replaceJsonCommas(first, `\n${delimiter}\n`);
   }
 
-  public replaceDemtingyah(fileContent: string, delimiter: string = ","): string {
+  public removeTripleBackticks(fileContent: string, delimiter: string = ","): string {
     return fileContent
       .split("\n")
       .map((line) => {
@@ -382,41 +275,16 @@ export class EditingService {
     return text.replace(/\},\s*[\r\n\s]*\{/g, `}${replacement}{`);
   }
 
-  public processJsonTextAgain(fileContent: string): string {
-    const temp = this.replaceDemtingyah(fileContent);
+  public removeBackticksFromJson(fileContent: string): string {
+    const temp = this.removeTripleBackticks(fileContent);
     return this.addBrackets(temp);
   }
 
-  public addBackslashToCommands(text: string): string {
+  public escapeKatexCommands(text: string): string {
     return text.replace(/(?<!\\)\\[a-zA-Z]+/g, (match) => {
       if (match === "\\n") return match;
       return "\\" + match;
     });
-  }
-
-  public correctPaidResponse(text: string): string {
-    const replacements = [
-      { from: "\\(", to: "[tex]" },
-      { from: "(", to: "[tex]" },
-      { from: "\\)", to: "[/tex]" },
-      { from: ")", to: "[/tex]" },
-      { from: "<tex>", to: "[tex]" },
-      { from: "</tex>", to: "[/tex]" },
-      { from: "<texd>", to: "[texd]" },
-      { from: "</texd>", to: "[/texd]" },
-      { from: "texd>", to: "texd]" },
-      { from: "\\[", to: "[tex]" },
-      { from: "\\]", to: "[/tex]" },
-    ];
-
-    return replacements.reduce(
-      (text, { from, to }) =>
-        text.replace(
-          new RegExp(from.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
-          to
-        ),
-      text
-    );
   }
 
   public parseKatex(source: string): string {
@@ -457,14 +325,6 @@ export class EditingService {
 
   public addQuestionId(qans: Qans): Qans & { questionId: string } {
     return { ...qans, questionId: this.getRandomLetter() };
-  }
-
-  public formatContent(content: string): string {
-    const withOutsideTextWrapped = this.wrapTextOutsideTex(content);
-    const withLargeInTexTags = this.wrapTexContentWith(withOutsideTextWrapped);
-    const withSmallText = this.wrapTextWith(withLargeInTexTags);
-    const parsed = this.parseKatex(withSmallText);
-    return parsed;
   }
 
   public fixExcessiveBackslashes(strings: string[]): string[] {

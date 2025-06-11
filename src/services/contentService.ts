@@ -349,8 +349,8 @@ export class ContentService {
   }
 
   private async formatAndSaveAsJson(correctedContent: string[], outputFile: string): Promise<void> {
-    const formattedContent = this.editingService.processJsonTextAgain(
-      this.editingService.addBackslashToCommands(correctedContent.join("\n"))
+    const formattedContent = this.editingService.removeBackticksFromJson(
+      this.editingService.escapeKatexCommands(correctedContent.join("\n"))
     );
     this.fileService.appendToFile(outputFile, formattedContent, "outbound");
   }

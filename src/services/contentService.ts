@@ -175,13 +175,22 @@ export class ContentService {
     });
   }
 
-  public async runSecondaryWorkflow(): Promise<void> {
-    const batchSize = 3;
+  public async runExpandSolutionsWorkflow(): Promise<void> {
+    const validObjects = await this.readClassifiedQuestions();
+    await this.expandAndSaveSolutions(validObjects);
+  }
+
+  private async readClassifiedQuestions(): Promise<string[]> {
     const fileContents = this.fileService.readFile("outbound/classified.txt");
     const { validObjects } = this.editingService.processQuestionFile(fileContents);
-
+    
     console.log(`There are ${validObjects.length} questions to expand.`);
+    return validObjects;
+  }
 
+  private async expandAndSaveSolutions(validObjects: string[]): Promise<void> {
+    const batchSize = 3;
+    
     const expandedSolutions = await this.processInBatches(
       validObjects,
       batchSize,
@@ -194,7 +203,7 @@ export class ContentService {
       this.fileService.appendToFile("expandedSolutions.txt", parsed, "outbound");
     });
 
-    console.log("Solutions appended to file.");
+    console.log("Expanded solutions appended to file.");
   }
 
   public async runGenerateGuidesWorkflow(): Promise<void> {

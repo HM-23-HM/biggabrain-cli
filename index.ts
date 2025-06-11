@@ -37,7 +37,7 @@ const main = async () => {
     .description("Run secondary processing of expanded solutions")
     .action(async () => {
       try {
-        await contentService.runSecondaryWorkflow();
+        await contentService.runExpandSolutionsWorkflow();
       } catch (error) {
         console.error("Error in secondary command:", error);
         process.exit(1);

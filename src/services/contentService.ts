@@ -51,37 +51,25 @@ export class ContentService {
     return results;
   }
 
-  public async processDocuments(promptType: keyof typeof this.fileService.promptsConfig): Promise<string[]> {
-    const inboundDir = path.join(__dirname, "../../inbound");
-    const stagingDir = path.join(__dirname, "../../staging");
-
-    const pdfFiles = this.fileService.getFilenames("inbound", "pdf");
-
-    for (const file of pdfFiles) {
-      const filePath = path.join(inboundDir, file);
-      await this.fileService.convertPdfToPng(filePath);
-      console.log(`Converted ${file} to PNG`);
-    }
-
-    const imageFiles = this.fileService.getFilenames("staging", "png");
+  public async extractSyllabusContent(): Promise<string[]> {
+    const imagePaths = await this.fileService.convertSyllabusToImages();
 
     const content = [];
-    for (const file of imageFiles) {
-      const filePath = path.join(stagingDir, file.replace(".pdf", ".png"));
+    for (const filePath of imagePaths) {
       const extracted = await this.extractContentFromImage(
         filePath,
-        this.fileService.promptsConfig[promptType] as string
+        this.fileService.promptsConfig.extractObjectives as string
       );
       content.push(extracted);
     }
 
-    console.log("Extracted content saved to file");
+    console.log("Extracted content from syllabus");
     return content;
   }
 
   public async runPrimaryWorkflow(): Promise<void> {
     try {
-      const questions = await this.processDocuments("extractObjectives");
+      const questions = await this.extractSyllabusContent();
       console.log("questions saved to file");
 
       const combinedQans: string[] = [];
@@ -181,7 +169,7 @@ export class ContentService {
   }
 
   public async runGenerateGuidesWorkflow(): Promise<void> {
-    await this.processDocuments("extractObjectives");
+    await this.extractSyllabusContent();
     console.log("Objectives extracted");
 
     const fileContent = this.fileService.readFile("saved/imageToText.txt");

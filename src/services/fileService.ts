@@ -314,6 +314,25 @@ export class FileService {
         fs.renameSync(oldPath, newPath);
     }
   }
+
+  public async convertSyllabusToImages(): Promise<string[]> {
+    const inboundDir = path.join(__dirname, "../../inbound");
+    const stagingDir = path.join(__dirname, "../../staging");
+
+    const pdfFiles = this.getFilenames("inbound", "pdf");
+    for (const file of pdfFiles) {
+      const filePath = path.join(inboundDir, file);
+      await this.convertPdfToPng(filePath);
+      console.log(`Converted ${file} to PNG`);
+    }
+
+    const imageFiles = this.getFilenames("staging", "png");
+    const imagePaths = imageFiles.map(file => {
+      return path.join(stagingDir, file.replace(".pdf", ".png"));
+    });
+
+    return imagePaths;
+  }
 }
 
 export const getFileService = () => FileService.getInstance();

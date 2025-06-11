@@ -1,31 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 import { encoding_for_model, TiktokenModel } from "tiktoken";
-
-interface LLMConfig {
-  googleApiKey?: string;
-  openaiApiKey?: string;
-  geminiModel?: string;
-  openaiModel?: TiktokenModel;
-}
-
-interface TokenCounts {
-  free: {
-    input: number;
-    output: number;
-  };
-  paid: {
-    input: number;
-    output: number;
-  };
-}
-
-interface ImageData {
-  inlineData: {
-    data: string;
-    mimeType: string;
-  };
-}
+import { LLMConfig, TokenCounts, ImageData } from "../utils/types";
 
 export class LLMService {
   private static instance: LLMService;

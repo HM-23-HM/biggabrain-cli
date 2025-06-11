@@ -1,14 +1,31 @@
-import * as path from "path";
 import * as fs from "fs";
+import * as path from "path";
 import * as yaml from "js-yaml";
-import { Syllabus, Prompts } from "../utils/types";
-
-export type FolderNames = "inbound" | "outbound" | "staging" | "archive" | "saved";
+import * as handlebars from "handlebars";
+import * as puppeteer from "puppeteer";
+import * as util from "util";
+import { v4 as uuidv4 } from "uuid";
+const poppler = require('pdf-poppler');
+import { Syllabus, Prompts, FolderNames, ContentType, MultipleChoice, WorkedExampleContent } from "../utils/types";
 
 export class FileService {
   private static instance: FileService;
   private _promptsConfig: Prompts;
   private _syllabusConfig: Syllabus;
+
+  private contentTemplateMap: Record<ContentType, string> = {
+    "Motivational Quote": "post",
+    "Exam Tips": "post",
+    "Worked Example": "workedExample",
+    Quizzes: "quiz",
+  };
+
+  private contentColorMap: Record<ContentType, string> = {
+    "Motivational Quote": "#B4A9EF",
+    "Exam Tips": "#ADEBD1",
+    "Worked Example": "#2D3142",
+    Quizzes: "#F1B4A1",
+  };
 
   private constructor() {
     const promptFileContents = fs.readFileSync("./configs/prompts.yaml", "utf8");
@@ -126,6 +143,176 @@ export class FileService {
 
   public readFileAsBase64(filePath: string): string {
     return fs.readFileSync(filePath).toString("base64");
+  }
+
+  public readFile(filePath: string): string {
+    return fs.readFileSync(filePath, "utf-8");
+  }
+
+  private generateHtmlFilename(type: ContentType, workedExample?: WorkedExampleContent): string {
+    return type === 'Worked Example' ? `${type}-${workedExample?.questionId ?? ""}-${uuidv4()}.html` : `${type}-${uuidv4()}.html`;
+  }
+
+  private async generateHtml(
+    type: ContentType,
+    quote: string | MultipleChoice | WorkedExampleContent,
+    filename: string
+  ): Promise<void> {
+    const templatePath = path.resolve("", `./templates/${this.contentTemplateMap[type]}.html`);
+    const templateSource = fs.readFileSync(templatePath, "utf-8");
+    const template = handlebars.compile(templateSource);
+
+    const logoPath = path.resolve("", "./assets/logo.svg");
+    const commonConfig = {
+      backgroundColor: this.contentColorMap[type],
+      logoPath,
+    };
+
+    let templateConfig: any = { quote, ...commonConfig };
+
+    switch(type){
+      case 'Worked Example':
+        const _temp = quote as WorkedExampleContent;
+        templateConfig = {
+          quote: _temp.content,
+          questionId: _temp.questionId,
+          ...commonConfig
+        }
+        break;
+      case 'Quizzes':
+        templateConfig = { ...(quote as MultipleChoice), ...commonConfig };
+        break;
+    }
+
+    const html = template(templateConfig);
+    const writeFile = util.promisify(fs.writeFile);
+    const htmlOutputPath = path.resolve("", "posts", "html", filename);
+    await writeFile(htmlOutputPath, html);
+  }
+
+  private async generatePngFromHtml(htmlFilename: string): Promise<void> {
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.goto("file://" + path.resolve("", "posts", "html", htmlFilename));
+    const outputPath = path.resolve("", "posts", "png", htmlFilename.replace(".html", ".png"));
+    await page.screenshot({ path: outputPath, fullPage: true });
+    await browser.close();
+  }
+
+  private async cleanupHtml(): Promise<void> {
+    const htmlFilesPath = path.resolve("", "posts", "html");
+    const files = fs.readdirSync(htmlFilesPath);
+    for (const file of files) {
+      fs.unlinkSync(path.join(htmlFilesPath, file));
+    }
+    console.log("html files cleaned up");
+  }
+
+  private async generateImagesForSources(
+    sources: (string | WorkedExampleContent)[],
+    type: ContentType
+  ): Promise<void> {
+    for (const quote of sources) {
+      const filename = type === 'Worked Example' ? this.generateHtmlFilename(type, quote as WorkedExampleContent) : this.generateHtmlFilename(type);
+      await this.generateHtml(type, quote, filename);
+      await this.generatePngFromHtml(filename);
+    }
+  }
+
+  public async generateMarketingImages(sourceMaterial: {
+    [K in ContentType]: (string | WorkedExampleContent)[];
+  }): Promise<void> {
+    console.log(`Generating images`);
+    for (const key in sourceMaterial) {
+      const sources = sourceMaterial[key as keyof typeof sourceMaterial];
+      if (sources.length > 0) {
+        await this.generateImagesForSources(sources, key as ContentType);
+      }
+    }
+    await this.cleanupHtml();
+  }
+
+  public async convertPdfToPng(pdfFilePath: string): Promise<void> {
+    const stagingFolder = path.join(__dirname, '../../staging');
+
+    let opts = {
+        format: 'png',
+        out_dir: 'staging',
+        out_prefix: path.basename(pdfFilePath, path.extname(pdfFilePath)),
+        page: null
+    }
+
+    if (!fs.existsSync(pdfFilePath)) {
+        console.log({ pdfFilePath });
+        throw new Error(`PDF file ${pdfFilePath} does not exist in the inbound folder.`);
+    }
+
+    if (!fs.existsSync(stagingFolder)) {
+        fs.mkdirSync(stagingFolder, { recursive: true });
+    }
+
+    try {
+        await poppler.convert(pdfFilePath, opts);
+        console.log(`PDF file ${pdfFilePath} has been successfully converted to PNG files.`);
+    } catch (error) {
+        console.error(`Error converting PDF file ${pdfFilePath}:`, error);
+    }
+  }
+
+  public async moveFiles(): Promise<void> {
+    const inboundDir = path.join(__dirname, '../../inbound');
+    const archiveInboundDir = path.join(__dirname, '../../archive/inbound');
+    const savedDir = path.join(__dirname, '../../saved');
+    const archiveDir = path.join(__dirname, '../../archive');
+    const stagingDir = path.join(__dirname, '../../staging');
+    const archiveStagingDir = path.join(__dirname, '../../archive/staging');
+
+    // Ensure archive/inbound directory exists
+    if (!fs.existsSync(archiveInboundDir)) {
+        fs.mkdirSync(archiveInboundDir, { recursive: true });
+    }
+
+    // Ensure archive/staging directory exists
+    if (!fs.existsSync(archiveStagingDir)) {
+        fs.mkdirSync(archiveStagingDir, { recursive: true });
+    }
+
+    // Move files from inbound to archive/inbound
+    const inboundFiles = fs.readdirSync(inboundDir);
+    for (const file of inboundFiles) {
+        const srcPath = path.join(inboundDir, file);
+        const destPath = path.join(archiveInboundDir, file);
+        fs.renameSync(srcPath, destPath);
+    }
+
+    // Move files from staging to archive/staging
+    const stagingFiles = fs.readdirSync(stagingDir);
+    for (const file of stagingFiles) {
+        const srcPath = path.join(stagingDir, file);
+        const destPath = path.join(archiveStagingDir, file);
+        fs.renameSync(srcPath, destPath);
+    }
+
+    // Find the next auto-increment index for the saved/ folder
+    let index = 1;
+    while (fs.existsSync(path.join(archiveDir, index.toString()))) {
+        index++;
+    }
+
+    const archiveSavedDir = path.join(archiveDir, index.toString(), 'saved');
+
+    // Ensure archive/[index]/saved directory exists
+    if (!fs.existsSync(archiveSavedDir)) {
+        fs.mkdirSync(archiveSavedDir, { recursive: true });
+    }
+
+    // Move files from saved/ to archive/[index]/saved/
+    const savedFiles = fs.readdirSync(savedDir);
+    for (const file of savedFiles) {
+        const oldPath = path.join(savedDir, file);
+        const newPath = path.join(archiveSavedDir, file);
+        fs.renameSync(oldPath, newPath);
+    }
   }
 }
 

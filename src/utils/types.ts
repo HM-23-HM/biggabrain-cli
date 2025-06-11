@@ -82,4 +82,6 @@ export type WorkedExampleContent = {
   questionId: string; 
   content: string; 
 };
+
+export type MessageContent = string;
   

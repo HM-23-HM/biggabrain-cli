@@ -14,11 +14,10 @@
   },
   "homepage": "https://github.com/HM-23-HM/bigga-brain-chain#readme",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx tsx index.ts",
-    "genmar": "npx tsx generateMar.ts",
-    "temp": "npx tsx temp.ts",
-    "gg": "npx tsx index.ts generateGuides"
+    "qans": "npx tsx index.ts qans",
+    "expand": "npx tsx index.ts expand",
+    "lp": "npx tsx index.ts lp",
+    "marketing": "npx tsx index.ts marketing"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
@@ -27,9 +26,7 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@langchain/core": "^0.3.26",
-    "@langchain/google-genai": "^0.1.6",
-    "axios": "^1.7.9",
+    "@google/generative-ai": "^0.24.1",
     "commander": "^13.1.0",
     "handlebars": "^4.7.8",
     "js-yaml": "^4.1.0",
@@ -37,6 +34,7 @@
     "openai": "^4.85.2",
     "pdf-poppler": "^0.2.1",
     "puppeteer": "^23.11.1",
-    "tiktoken": "^1.0.20"
+    "tiktoken": "^1.0.20",
+    "uuid": "^11.1.0"
   }
 }

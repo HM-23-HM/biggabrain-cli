@@ -28,8 +28,8 @@ export class FileService {
   };
 
   private constructor() {
-    const promptFileContents = fs.readFileSync("./prompts/main.yaml", "utf8");
-    const sylFileContents = fs.readFileSync("./configs/syllabus.yaml", "utf8");
+    const promptFileContents = fs.readFileSync("./yaml/prompts.yaml", "utf8");
+    const sylFileContents = fs.readFileSync("./yaml/syllabus.yaml", "utf8");
     this._promptsConfig = yaml.load(promptFileContents) as Prompts;
     this._syllabusConfig = yaml.load(sylFileContents) as Syllabus;
   }

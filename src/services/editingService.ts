@@ -267,7 +267,9 @@ export class EditingService {
     return html;
   }
 
-  public processJsonTextObjectives(fileContent: string): string {
+  /** Cleans the objectives text by removing backticks and misplaced brackets
+   * to ensure that the objectives are in a valid JSON format. */
+  public cleanObjectivesFile(fileContent: string): string {
     const withoutBackticks = fileContent
       .split("\n")
       .filter((line) => !line.trim().startsWith("```"))

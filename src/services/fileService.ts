@@ -222,14 +222,16 @@ export class FileService {
   public async generateMarketingImages(sourceMaterial: {
     [K in ContentType]: (string | WorkedExampleContent)[];
   }): Promise<void> {
-    console.log(`Generating images`);
+    console.log(`Generating images for marketing`);
     for (const key in sourceMaterial) {
       const sources = sourceMaterial[key as keyof typeof sourceMaterial];
       if (sources.length > 0) {
         await this.generateImagesForSources(sources, key as ContentType);
       }
     }
+    console.log(`Cleaning up HTML files`);
     await this.cleanupHtml();
+    console.log(`Marketing images generated and html files cleaned up`);
   }
 
   public async convertPdfToPng(pdfFilePath: string): Promise<void> {

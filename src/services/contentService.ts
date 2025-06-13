@@ -24,15 +24,25 @@ export class ContentService {
     return ContentService.instance;
   }
 
-  private formatStringQuestions(questions: MessageContent[]): string {
-    return questions.join("\n");
+  /** Joins an array of strings into a single string.
+   * Each question is on a new line.
+   */
+  private joinStrings(strings: string[]): string {
+    return strings.join("\n");
   }
 
-  private formatObjQuestions(questions: any[]): string {
-    const int = questions.map((question) => JSON.stringify(question));
+  /** Joins an array of objects into a single string.
+   * Each object is converted to a string using JSON.stringify.
+   * Each string is on a new line.
+   */
+  private joinObjects(objects: any[]): string {
+    const int = objects.map((object) => JSON.stringify(object));
     return int.join("\n");
   }
 
+  /** Processes an array of items in batches with the supplied
+   *  callback function.
+   */
   private async processInBatches<T, R>(
     items: T[],
     batchSize: number,
@@ -78,7 +88,7 @@ export class ContentService {
       console.log("objectives saved to file");
 
       const combinedQans = await this.generateQansFromObjectives(objectives);
-      await this.classifyAndEditQans(combinedQans);
+      await this.classifyQans(combinedQans);
 
     } catch (err) {
       console.error("Error in primary workflow:", err);
@@ -97,7 +107,11 @@ export class ContentService {
     let unanswered: MessageContent[] = objectives;
 
     while (unanswered.length && iterations < maxIterations) {
-      const responses = await this.processQansBatch(unanswered, batchSize);
+      const responses = await this.processInBatches(
+        unanswered,
+        batchSize,
+        this.generateQans.bind(this)
+      );
       unanswered = this.getUnansweredQuestions(unanswered, responses);
       combinedQans.push(...responses);
 
@@ -112,20 +126,9 @@ export class ContentService {
     }
 
     await this.saveUnansweredQuestions(unanswered, maxIterations);
-    await this.saveCombinedQans(combinedQans);
+    await this.saveQans(combinedQans);
 
     return combinedQans;
-  }
-
-  private async processQansBatch(unanswered: MessageContent[], batchSize: number): Promise<string[]> {
-    const batchPromises = [];
-    for (let i = 0; i < unanswered.length; i += batchSize) {
-      const batch = unanswered.slice(i, i + batchSize);
-      batchPromises.push(this.generateQans(batch));
-    }
-
-    const batchResponses = await Promise.all(batchPromises);
-    return batchResponses.flat();
   }
 
   private async saveUnansweredQuestions(unanswered: MessageContent[], maxIterations: number): Promise<void> {
@@ -134,18 +137,18 @@ export class ContentService {
         `Some questions remain unanswered after ${maxIterations} iterations:`,
         unanswered
       );
-      this.fileService.appendToFile("unanswered.txt", this.formatObjQuestions(unanswered));
+      this.fileService.appendToFile("unanswered.txt", this.joinObjects(unanswered));
     } else {
       console.log("All questions answered.");
     }
   }
 
-  private async saveCombinedQans(combinedQans: string[]): Promise<void> {
+  private async saveQans(combinedQans: string[]): Promise<void> {
     const content = JSON.stringify(combinedQans, null, 2);
     this.fileService.appendToFile("combined.json", content);
   }
 
-  private async classifyAndEditQans(combinedQans: string[]): Promise<void> {
+  private async classifyQans(combinedQans: string[]): Promise<void> {
     const batchSize = 3;
 
     const classifiedResults = await this.processInBatches(
@@ -155,11 +158,11 @@ export class ContentService {
     );
     console.log("classification complete");
     
-    const edited = await this.editAndDoubleCheckResults(classifiedResults, batchSize);
-    await this.saveFinalResults(edited);
+    const corrected = await this.correctQans(classifiedResults, batchSize);
+    await this.saveClassifiedQans(corrected);
   }
 
-  private async editAndDoubleCheckResults(classifiedResults: string[], batchSize: number): Promise<string[]> {
+  private async correctQans(classifiedResults: string[], batchSize: number): Promise<string[]> {
     const wFixedKatex = this.editingService.fixExcessiveBackslashes(classifiedResults);
     console.log("katex fixed");
     
@@ -173,7 +176,7 @@ export class ContentService {
     return doubleChecked;
   }
 
-  private async saveFinalResults(results: string[]): Promise<void> {
+  private async saveClassifiedQans(results: string[]): Promise<void> {
     results.forEach((result) => {
       const parsed = this.editingService.stripLLMOutputMarkers(result);
       this.fileService.appendToFile("classified.txt", parsed, "outbound");
@@ -183,11 +186,11 @@ export class ContentService {
   /** Adds more detail to the solutions initially provided in the 
    * Qans. */
   public async runExpandSolutionsWorkflow(): Promise<void> {
-    const validObjects = await this.readClassifiedQuestions();
+    const validObjects = await this.readClassifiedQans();
     await this.expandAndSaveSolutions(validObjects);
   }
 
-  private async readClassifiedQuestions(): Promise<string[]> {
+  private async readClassifiedQans(): Promise<string[]> {
     const fileContents = this.fileService.readFile("outbound/classified.txt");
     const { validObjects } = this.editingService.processQuestionFile(fileContents);
     
@@ -231,16 +234,19 @@ export class ContentService {
     await this.generatePracticeFromObjectives(objectives);
     console.log("Practice problems generated");
 
-    await this.correctLessons();
-    await this.correctPractice();
+    const lessonsContent = this.fileService.readFile("outbound/lessons.txt");
+    const practiceContent = this.fileService.readFile("outbound/practice.txt");
+
+    await this.editingService.correctContent(lessonsContent, 'lessons', this.fileService, this.llmService);
+    await this.editingService.correctContent(practiceContent, 'practice', this.fileService, this.llmService);
   }
 
   public async runMarketingWorkflow(): Promise<void> {
-    const sourceMaterial = await this.generateSourceMaterial();
+    const sourceMaterial = await this.generateMarketingSourceMaterial();
     await this.fileService.generateMarketingImages(sourceMaterial);
   }
 
-  private async generateSourceMaterial(): Promise<{ [K in ContentType]: (string | WorkedExampleContent)[] }> {
+  private async generateMarketingSourceMaterial(): Promise<{ [K in ContentType]: (string | WorkedExampleContent)[] }> {
     console.log("Generating source material for marketing images");
     const sourceMaterial: { [K in ContentType]: (string | WorkedExampleContent)[] } = {
       Quizzes: [],
@@ -305,69 +311,6 @@ export class ContentService {
     console.log("All practice problems generated successfully!");
   }
 
-  private async correctLessons(): Promise<void> {
-    const delimiter = "*****";
-    
-    const originalLessonContent = this.fileService.readFile("outbound/lessons.txt");
-    const segmentedLessons = await this.segmentContent(originalLessonContent, delimiter, "segmentedLessons.txt", "lessons");
-    
-    const correctedLessons = await this.correctAndSaveContent(segmentedLessons, "correctedLessons.txt", "lessons");
-    await this.formatAndSaveAsJson(correctedLessons, "correctedLessons.json");
-  }
-
-  private async correctPractice(): Promise<void> {
-    const delimiter = "*****";
-    
-    const practiceContent = this.fileService.readFile("outbound/practice.txt");
-    const segmentedPractice = await this.segmentContent(practiceContent, delimiter, "segmentedPractice.txt", "practice");
-    
-    const correctedPractice = await this.correctAndSaveContent(segmentedPractice, "correctedPractice.txt", "practice");
-    await this.formatAndSaveAsJson(correctedPractice, "correctedPractice.json");
-  }
-
-  private async segmentContent(content: string, delimiter: string, outputFile: string, contentType: string): Promise<string[]> {
-    const segmentedContent = this.editingService.chopUpDis(content, delimiter);
-    this.fileService.appendToFile(outputFile, segmentedContent);
-
-    const segmentedList = segmentedContent.split(delimiter).filter(Boolean);
-    console.log(`There are ${segmentedList.length} segmented ${contentType}`);
-
-    return segmentedList;
-  }
-
-  private async correctAndSaveContent(segmentedList: string[], outputFile: string, contentType: string): Promise<string[]> {
-    const correctedContent = await this.processInBatches(
-      segmentedList,
-      3,
-      this.correctTex.bind(this)
-    );
-    console.log(`There are ${correctedContent.length} corrected ${contentType}`);
-    this.fileService.appendToFile(outputFile, correctedContent.join("\n"));
-
-    return correctedContent;
-  }
-
-  private async formatAndSaveAsJson(correctedContent: string[], outputFile: string): Promise<void> {
-    const formattedContent = this.editingService.removeBackticksFromJson(
-      this.editingService.escapeKatexCommands(correctedContent.join("\n"))
-    );
-    this.fileService.appendToFile(outputFile, formattedContent, "outbound");
-  }
-
-  public async generateQans(questions: MessageContent[]): Promise<string> {
-    const formattedQuestions = this.formatStringQuestions(questions);
-    this.fileService.appendToFile("formattedQuestions.txt", formattedQuestions);
-    console.log("formattedQuestions saved to file");
-
-    const qansPrompt = `${formattedQuestions}\n${this.fileService.promptsConfig.generateQans}\n${this.fileService.promptsConfig.editingNotes}\n${this.fileService.promptsConfig.editingNotesQans}`;
-
-    const response = await this.llmService.sendPrompt(qansPrompt);
-    this.fileService.appendToFile("qansResponse.txt", response);
-    console.log("qansResponse saved to file");
-
-    return response;
-  }
-
   private async generateLessons(objective: string): Promise<string> {
     const response = await this.llmService.sendPrompt(
       `${this.fileService.promptsConfig.generateLesson}\n${objective}\n${this.fileService.promptsConfig.editingNotes}\n${this.fileService.promptsConfig.editingNotesLesson}`,
@@ -396,41 +339,6 @@ export class ContentService {
     console.log("practiceResponse saved to file");
 
     return response;
-  }
-
-  private async classifyQuestions(questions: string[]): Promise<string> {
-    const formattedQuestions = this.formatStringQuestions(questions);
-    const content = await this.llmService.sendPrompt(
-      `${
-        this.fileService.promptsConfig.classify
-      }\nSections\n${this.fileService.syllabusConfig.sections.join(
-        "\n"
-      )}\nQuestions\n${formattedQuestions}`
-    );
-    this.fileService.appendToFile("classifiedQuestions.txt", content);
-    return content;
-  }
-
-  private async doubleCheckQans(qans: string[]): Promise<string> {
-    return this.llmService.sendPrompt(
-      `${
-        this.fileService.promptsConfig.doubleCheck
-      }\n\nQuestions\n${this.formatObjQuestions(qans)}`
-    );
-  }
-
-  private async expandSolutions(qans: string[]): Promise<string> {
-    const formattedQans = this.formatStringQuestions(qans);
-    return this.llmService.sendPrompt(
-      `Questions\n${formattedQans}\nInstructions:\n${this.fileService.promptsConfig.expandSolution}\n\Editing notes:\n${this.fileService.promptsConfig.editingNotes}\n${this.fileService.promptsConfig.editingNotesQans}`
-    );
-  }
-
-  private async correctTex(content: string[]): Promise<string> {
-    const formatted = this.formatStringQuestions(content);
-    return this.llmService.sendPrompt(
-      `${this.fileService.promptsConfig.correctTex}\n${formatted}`
-    );
   }
 
   private async extractContentFromImage(
@@ -469,6 +377,48 @@ export class ContentService {
       content: this.editingService.formatHtml(item.content),
     }));
     return formatted;
+  }
+
+  private async classifyQuestions(questions: string[]): Promise<string> {
+    const formattedQuestions = this.editingService.joinStrings(questions);
+    const content = await this.llmService.sendPrompt(
+      `${
+        this.fileService.promptsConfig.classify
+      }\nSections\n${this.fileService.syllabusConfig.sections.join(
+        "\n"
+      )}\nQuestions\n${formattedQuestions}`
+    );
+    this.fileService.appendToFile("classifiedQuestions.txt", content);
+    return content;
+  }
+
+  private async doubleCheckQans(qans: string[]): Promise<string> {
+    return this.llmService.sendPrompt(
+      `${
+        this.fileService.promptsConfig.doubleCheck
+      }\n\nQuestions\n${this.editingService.joinObjects(qans)}`
+    );
+  }
+
+  private async expandSolutions(qans: string[]): Promise<string> {
+    const formattedQans = this.editingService.joinStrings(qans);
+    return this.llmService.sendPrompt(
+      `Questions\n${formattedQans}\nInstructions:\n${this.fileService.promptsConfig.expandSolution}\n\Editing notes:\n${this.fileService.promptsConfig.editingNotes}\n${this.fileService.promptsConfig.editingNotesQans}`
+    );
+  }
+
+  private async generateQans(questions: MessageContent[]): Promise<string> {
+    const formattedQuestions = this.editingService.joinStrings(questions);
+    this.fileService.appendToFile("formattedQuestions.txt", formattedQuestions);
+    console.log("formattedQuestions saved to file");
+
+    const qansPrompt = `${formattedQuestions}\n${this.fileService.promptsConfig.generateQans}\n${this.fileService.promptsConfig.editingNotes}\n${this.fileService.promptsConfig.editingNotesQans}`;
+
+    const response = await this.llmService.sendPrompt(qansPrompt);
+    this.fileService.appendToFile("qansResponse.txt", response);
+    console.log("qansResponse saved to file");
+
+    return response;
   }
 }
 

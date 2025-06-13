@@ -1,6 +1,8 @@
 import { Qans, WorkedExampleContent, QuestionFile } from "../utils/types";
 import katex from "katex";
 import fs from "fs";
+import { FileService } from "../services/fileService";
+import { LLMService } from "../services/llmService";
 
 export class EditingService {
   private static instance: EditingService;
@@ -333,6 +335,107 @@ export class EditingService {
     return strings.map((original) => {
         return original.replace(excessiveSlashRegex, '\\\\');
     });
+  }
+
+  /** Joins an array of strings into a single string.
+   * Each string is on a new line.
+   */
+  public joinStrings(strings: string[]): string {
+    return strings.join("\n");
+  }
+
+  /** Joins an array of objects into a single string.
+   * Each object is converted to a string using JSON.stringify.
+   * Each string is on a new line.
+   */
+  public joinObjects(objects: any[]): string {
+    const int = objects.map((object) => JSON.stringify(object));
+    return int.join("\n");
+  }
+
+  /** Generic function to correct content (lessons or practice problems)
+   * @param content The content to correct
+   * @param contentType The type of content ('lessons' or 'practice')
+   * @param fileService The FileService instance to use for file operations
+   * @param llmService The LLMService instance to use for corrections
+   */
+  public async correctContent(
+    content: string,
+    contentType: 'lessons' | 'practice',
+    fileService: FileService,
+    llmService: LLMService
+  ): Promise<void> {
+    const delimiter = "*****";
+    
+    const segmentedContent = await this.segmentContent(content, delimiter, `segmented${contentType}.txt`, contentType, fileService);
+    const correctedContent = await this.correctAndSaveContent(segmentedContent, `corrected${contentType}.txt`, contentType, fileService, llmService);
+    await this.formatAndSaveAsJson(correctedContent, `corrected${contentType}.json`, fileService);
+  }
+
+  /** Segments content using a delimiter and saves it to a file */
+  private async segmentContent(
+    content: string,
+    delimiter: string,
+    outputFile: string,
+    contentType: string,
+    fileService: FileService
+  ): Promise<string[]> {
+    const segmentedContent = this.chopUpDis(content, delimiter);
+    fileService.appendToFile(outputFile, segmentedContent);
+
+    const segmentedList = segmentedContent.split(delimiter).filter(Boolean);
+    console.log(`There are ${segmentedList.length} segmented ${contentType}`);
+
+    return segmentedList;
+  }
+
+  /** Corrects content in batches and saves it to a file */
+  private async correctAndSaveContent(
+    segmentedList: string[],
+    outputFile: string,
+    contentType: string,
+    fileService: FileService,
+    llmService: LLMService
+  ): Promise<string[]> {
+    const batchSize = 3;
+    const correctedContent: string[] = [];
+
+    for (let i = 0; i < segmentedList.length; i += batchSize) {
+      const batch = segmentedList.slice(i, i + batchSize);
+      const batchResults = await Promise.all(
+        batch.map(content => this.correctTex(content, llmService, fileService))
+      );
+      correctedContent.push(...batchResults);
+      console.log(`Batch ${Math.floor(i / batchSize) + 1} processed`);
+    }
+
+    console.log(`There are ${correctedContent.length} corrected ${contentType}`);
+    fileService.appendToFile(outputFile, correctedContent.join("\n"));
+
+    return correctedContent;
+  }
+
+  /** Formats content as JSON and saves it to a file */
+  private async formatAndSaveAsJson(
+    correctedContent: string[],
+    outputFile: string,
+    fileService: FileService
+  ): Promise<void> {
+    const formattedContent = this.removeBackticksFromJson(
+      this.escapeKatexCommands(correctedContent.join("\n"))
+    );
+    fileService.appendToFile(outputFile, formattedContent, "outbound");
+  }
+
+  /** Corrects TeX syntax in content using LLM */
+  private async correctTex(
+    content: string,
+    llmService: LLMService,
+    fileService: FileService
+  ): Promise<string> {
+    return llmService.sendPrompt(
+      `${fileService.promptsConfig.correctTex}\n${content}`
+    );
   }
 }
 

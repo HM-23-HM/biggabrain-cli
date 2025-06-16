@@ -4,10 +4,10 @@ This is a command-line application to generate the educational and marketing con
 
 # Tech stack
 
-TypeScript
-Node.js
-Gemini API
-OpenAI API
+- TypeScript
+- Node.js
+- Gemini API
+- OpenAI API
 
 # Folder structure
 

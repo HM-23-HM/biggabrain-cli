@@ -94,7 +94,7 @@ export class ContentService {
       console.error("Error in primary workflow:", err);
       throw err;
     } finally {
-      await this.fileService.moveFiles();
+      await this.fileService.archiveFiles();
       console.log("Files moved successfully.");
     }
   }
@@ -192,7 +192,7 @@ export class ContentService {
 
   private async readClassifiedQans(): Promise<string[]> {
     const fileContents = this.fileService.readFile("outbound/classified.txt");
-    const { validObjects } = this.editingService.processQuestionFile(fileContents);
+    const { validObjects } = this.editingService.splitQuestionFile(fileContents);
     
     console.log(`There are ${validObjects.length} questions to expand.`);
     return validObjects;
@@ -237,8 +237,8 @@ export class ContentService {
     const lessonsContent = this.fileService.readFile("outbound/lessons.txt");
     const practiceContent = this.fileService.readFile("outbound/practice.txt");
 
-    await this.editingService.correctContent(lessonsContent, 'lessons', this.fileService, this.llmService);
-    await this.editingService.correctContent(practiceContent, 'practice', this.fileService, this.llmService);
+    await this.editingService.correctLessonsOrPractice(lessonsContent, 'lessons');
+    await this.editingService.correctLessonsOrPractice(practiceContent, 'practice');
   }
 
   public async runMarketingWorkflow(): Promise<void> {
@@ -272,19 +272,19 @@ export class ContentService {
   private async generateQuizzes(): Promise<string[]> {
     const prompt = this.fileService.promptsConfig.marketing.quizzes;
     const response = await this.llmService.sendPrompt(prompt);
-    return this.editingService.getJsArray(response);
+    return this.editingService.convertLLMResponseToJsArray(response);
   }
 
   private async generateExamTips(): Promise<string[]> {
     const prompt = this.fileService.promptsConfig.marketing.examPrepTips;
     const response = await this.llmService.sendPrompt(prompt);
-    return this.editingService.getJsArray(response);
+    return this.editingService.convertLLMResponseToJsArray(response);
   }
 
   private async generateMotivationalQuotes(): Promise<string[]> {
     const prompt = this.fileService.promptsConfig.marketing.motivation;
     const response = await this.llmService.sendPrompt(prompt);
-    return this.editingService.getJsArray(response);
+    return this.editingService.convertLLMResponseToJsArray(response);
   }
 
   private async generateLessonsFromObjectives(objectives: string[]): Promise<void> {
@@ -366,7 +366,7 @@ export class ContentService {
 
   private generateWorkedExamples(): WorkedExampleContent[] {
     const questionsPath = path.join("inbound", "questions", "worked.jsonc");
-    const file = fs.readFileSync(questionsPath, "utf-8");
+    const file = this.fileService.readFile(questionsPath);
     const parsed: { content: string; questionId: string }[] = [];
     const questions = (JSON.parse(file) as Qans[]).map(qans => this.editingService.addQuestionId(qans));
     questions.forEach((obj) => {

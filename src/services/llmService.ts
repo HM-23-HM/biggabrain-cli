@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 import { encoding_for_model, TiktokenModel } from "tiktoken";
 import { LLMConfig, TokenCounts, ImageData } from "../utils/types";
+import { getFileService } from "../services/fileService";
 
 export class LLMService {
   private static instance: LLMService;
@@ -159,8 +160,8 @@ export class LLMService {
     waitFor: number = 10,
     maxRetries: number = 3
   ): Promise<string> {
-    const fs = await import("fs");
-    const imageData = fs.readFileSync(imagePath).toString("base64");
+    const fileService = getFileService();
+    const imageData = fileService.readFileAsBase64(imagePath);
 
     return this.sendPrompt(
       prompt,

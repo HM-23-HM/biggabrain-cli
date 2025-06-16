@@ -126,7 +126,7 @@ export class FileService {
     fs.writeFileSync(filePath, JSON.stringify(existingContent, null, 2), "utf8");
   }
 
-  public copyFileToJson(filePath: string): void {
+  public createJsonFileCopy(filePath: string): void {
     try {
       const dir = path.dirname(filePath);
       const basename = path.basename(filePath, path.extname(filePath));
@@ -261,7 +261,7 @@ export class FileService {
     }
   }
 
-  public async moveFiles(): Promise<void> {
+  public async archiveFiles(): Promise<void> {
     const inboundDir = path.join(__dirname, '../../inbound');
     const archiveInboundDir = path.join(__dirname, '../../archive/inbound');
     const savedDir = path.join(__dirname, '../../saved');
@@ -269,17 +269,14 @@ export class FileService {
     const stagingDir = path.join(__dirname, '../../staging');
     const archiveStagingDir = path.join(__dirname, '../../archive/staging');
 
-    // Ensure archive/inbound directory exists
     if (!fs.existsSync(archiveInboundDir)) {
         fs.mkdirSync(archiveInboundDir, { recursive: true });
     }
 
-    // Ensure archive/staging directory exists
     if (!fs.existsSync(archiveStagingDir)) {
         fs.mkdirSync(archiveStagingDir, { recursive: true });
     }
 
-    // Move files from inbound to archive/inbound
     const inboundFiles = fs.readdirSync(inboundDir);
     for (const file of inboundFiles) {
         const srcPath = path.join(inboundDir, file);
@@ -287,7 +284,6 @@ export class FileService {
         fs.renameSync(srcPath, destPath);
     }
 
-    // Move files from staging to archive/staging
     const stagingFiles = fs.readdirSync(stagingDir);
     for (const file of stagingFiles) {
         const srcPath = path.join(stagingDir, file);
@@ -295,7 +291,6 @@ export class FileService {
         fs.renameSync(srcPath, destPath);
     }
 
-    // Find the next auto-increment index for the saved/ folder
     let index = 1;
     while (fs.existsSync(path.join(archiveDir, index.toString()))) {
         index++;
@@ -303,12 +298,10 @@ export class FileService {
 
     const archiveSavedDir = path.join(archiveDir, index.toString(), 'saved');
 
-    // Ensure archive/[index]/saved directory exists
     if (!fs.existsSync(archiveSavedDir)) {
         fs.mkdirSync(archiveSavedDir, { recursive: true });
     }
 
-    // Move files from saved/ to archive/[index]/saved/
     const savedFiles = fs.readdirSync(savedDir);
     for (const file of savedFiles) {
         const oldPath = path.join(savedDir, file);

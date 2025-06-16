@@ -1,13 +1,19 @@
 import { Qans, WorkedExampleContent, QuestionFile } from "../utils/types";
 import katex from "katex";
 import fs from "fs";
-import { FileService } from "../services/fileService";
-import { LLMService } from "../services/llmService";
+import { FileService, getFileService } from "./fileService";
+import { LLMService, getLLMService } from "../services/llmService";
 
+//TODO: Find a way to reduce the number of editing methods needed.
 export class EditingService {
   private static instance: EditingService;
+  private fileService: FileService;
+  private llmService: LLMService;
 
-  private constructor() {}
+  private constructor() {
+    this.fileService = getFileService();
+    this.llmService = getLLMService();
+  }
 
   public static getInstance(): EditingService {
     if (!EditingService.instance) {
@@ -21,7 +27,7 @@ export class EditingService {
     return content.replace(regex, "");
   }
 
-  public getJsArray(input: string): string[] {
+  public convertLLMResponseToJsArray(input: string): string[] {
     return JSON.parse(this.stripLLMOutputMarkers(input));
   }
 
@@ -52,25 +58,9 @@ export class EditingService {
     return result;
   }
 
-  public wrapTextOutsideTex(input: string): string {
-    return input.replace(
-      /(?:<[^>]+>)([^<\[]+)(?=<\/[^>]+>)/g,
-      (match, content) => {
-        return match.replace(content, `[tex]\\text{${content.trim()}}[/tex]`);
-      }
-    );
-  }
 
-  public wrapTexContentWith(
-    input: string,
-    type: "large" | "small" | "huge" = "huge"
-  ): string {
-    return input.replace(/\[tex\](.*?)\[\/tex\]/g, (match, content) => {
-      return `[tex]\\${type}{${content}}[/tex]`;
-    });
-  }
-
-  public wrapTextWith(
+  /** Wraps text (not TeX) with a size modifier. */
+  private wrapTextWith(
     input: string,
     type: "large" | "small" | "huge" = "small"
   ): string {
@@ -80,7 +70,8 @@ export class EditingService {
     );
   }
 
-  public processQuestionFile(fileContent: string): QuestionFile {
+  /** Splits a question file into valid and invalid objects. */
+  public splitQuestionFile(fileContent: string): QuestionFile {
     const result: QuestionFile = {
       content: fileContent,
       validObjects: [],
@@ -144,7 +135,7 @@ export class EditingService {
     return braceCount === 0;
   }
 
-  public formatKatex(html: string): string {
+  private formatKatex(html: string): string {
     return this.wrapTextWith(this.wrapTEXWith(html));
   }
 
@@ -152,7 +143,7 @@ export class EditingService {
     return this.styleHtmlWithTailwind(this.parseKatex(this.formatKatex(html)));
   }
 
-  public wrapTEXWith(
+  private wrapTEXWith(
     input: string,
     size: "small" | "large" | "huge" = "large"
   ): string {
@@ -161,7 +152,7 @@ export class EditingService {
     });
   }
 
-  public styleHtmlWithTailwind(html: string): string {
+  private styleHtmlWithTailwind(html: string): string {
     const pLiShared = "text-4xl mx-auto my-8";
     const listShared = "list-inside mb-4 pl-20";
     const allShared =
@@ -211,7 +202,7 @@ export class EditingService {
 
   public getObjectsFromFile(filePath: string): string[] {
     try {
-      const fileContent = fs.readFileSync(filePath, "utf-8");
+      const fileContent = this.fileService.readFile(filePath);
 
       try {
         const parsed = JSON.parse(fileContent);
@@ -239,7 +230,7 @@ export class EditingService {
     }
   }
 
-  private addBrackets(str: string): string {
+  private addSquareBrackets(str: string): string {
     if (!str || str.length === 0) return "[]";
     return "[" + str.slice(1) + "]";
   }
@@ -249,7 +240,7 @@ export class EditingService {
     return this.replaceJsonCommas(first, `\n${delimiter}\n`);
   }
 
-  public removeTripleBackticks(fileContent: string, delimiter: string = ","): string {
+  private removeTripleBackticks(fileContent: string, delimiter: string = ","): string {
     return fileContent
       .split("\n")
       .map((line) => {
@@ -273,13 +264,13 @@ export class EditingService {
       .join("\n");
   }
 
-  public replaceJsonCommas(text: string, replacement = '\n###\n'): string {
+  private replaceJsonCommas(text: string, replacement = '\n###\n'): string {
     return text.replace(/\},\s*[\r\n\s]*\{/g, `}${replacement}{`);
   }
 
-  public removeBackticksFromJson(fileContent: string): string {
+  private removeBackticksFromJson(fileContent: string): string {
     const temp = this.removeTripleBackticks(fileContent);
-    return this.addBrackets(temp);
+    return this.addSquareBrackets(temp);
   }
 
   public escapeKatexCommands(text: string): string {
@@ -356,20 +347,16 @@ export class EditingService {
   /** Generic function to correct content (lessons or practice problems)
    * @param content The content to correct
    * @param contentType The type of content ('lessons' or 'practice')
-   * @param fileService The FileService instance to use for file operations
-   * @param llmService The LLMService instance to use for corrections
    */
-  public async correctContent(
+  public async correctLessonsOrPractice(
     content: string,
-    contentType: 'lessons' | 'practice',
-    fileService: FileService,
-    llmService: LLMService
+    contentType: 'lessons' | 'practice'
   ): Promise<void> {
     const delimiter = "*****";
     
-    const segmentedContent = await this.segmentContent(content, delimiter, `segmented${contentType}.txt`, contentType, fileService);
-    const correctedContent = await this.correctAndSaveContent(segmentedContent, `corrected${contentType}.txt`, contentType, fileService, llmService);
-    await this.formatAndSaveAsJson(correctedContent, `corrected${contentType}.json`, fileService);
+    const segmentedContent = await this.segmentContent(content, delimiter, `segmented${contentType}.txt`, contentType);
+    const correctedContent = await this.correctAndSaveContent(segmentedContent, `corrected${contentType}.txt`, contentType);
+    await this.formatAndSaveAsJson(correctedContent, `corrected${contentType}.json`);
   }
 
   /** Segments content using a delimiter and saves it to a file */
@@ -377,11 +364,10 @@ export class EditingService {
     content: string,
     delimiter: string,
     outputFile: string,
-    contentType: string,
-    fileService: FileService
+    contentType: string
   ): Promise<string[]> {
     const segmentedContent = this.chopUpDis(content, delimiter);
-    fileService.appendToFile(outputFile, segmentedContent);
+    this.fileService.appendToFile(outputFile, segmentedContent);
 
     const segmentedList = segmentedContent.split(delimiter).filter(Boolean);
     console.log(`There are ${segmentedList.length} segmented ${contentType}`);
@@ -393,9 +379,7 @@ export class EditingService {
   private async correctAndSaveContent(
     segmentedList: string[],
     outputFile: string,
-    contentType: string,
-    fileService: FileService,
-    llmService: LLMService
+    contentType: string
   ): Promise<string[]> {
     const batchSize = 3;
     const correctedContent: string[] = [];
@@ -403,14 +387,14 @@ export class EditingService {
     for (let i = 0; i < segmentedList.length; i += batchSize) {
       const batch = segmentedList.slice(i, i + batchSize);
       const batchResults = await Promise.all(
-        batch.map(content => this.correctTex(content, llmService, fileService))
+        batch.map(content => this.correctTex(content))
       );
       correctedContent.push(...batchResults);
       console.log(`Batch ${Math.floor(i / batchSize) + 1} processed`);
     }
 
     console.log(`There are ${correctedContent.length} corrected ${contentType}`);
-    fileService.appendToFile(outputFile, correctedContent.join("\n"));
+    this.fileService.appendToFile(outputFile, correctedContent.join("\n"));
 
     return correctedContent;
   }
@@ -418,23 +402,18 @@ export class EditingService {
   /** Formats content as JSON and saves it to a file */
   private async formatAndSaveAsJson(
     correctedContent: string[],
-    outputFile: string,
-    fileService: FileService
+    outputFile: string
   ): Promise<void> {
     const formattedContent = this.removeBackticksFromJson(
       this.escapeKatexCommands(correctedContent.join("\n"))
     );
-    fileService.appendToFile(outputFile, formattedContent, "outbound");
+    this.fileService.appendToFile(outputFile, formattedContent, "outbound");
   }
 
   /** Corrects TeX syntax in content using LLM */
-  private async correctTex(
-    content: string,
-    llmService: LLMService,
-    fileService: FileService
-  ): Promise<string> {
-    return llmService.sendPrompt(
-      `${fileService.promptsConfig.correctTex}\n${content}`
+  private async correctTex(content: string): Promise<string> {
+    return this.llmService.sendPrompt(
+      `${this.fileService.promptsConfig.correctTex}\n${content}`
     );
   }
 }

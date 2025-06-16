@@ -20,4 +20,6 @@ src/
 │   └── llmService.ts       #AI model interaction
 └── utils/
     └── types.ts
+templates/
+yaml/
 ```
